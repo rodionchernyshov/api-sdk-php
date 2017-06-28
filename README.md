@@ -4,10 +4,6 @@
 
 The Qordoba API Client library enables you to work with Qordoba project translation services on the fly.
 
-## Beta
-
-This library is in Beta. We're comfortable enough with the stability and features of the library that we want you to build real production applications on it. We will make an effort to support the public and protected surface of the library and maintain backwards compatibility in the future.
-
 ## Requirements
 - PHP 5.6 or higher
 
