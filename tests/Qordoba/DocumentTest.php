@@ -116,13 +116,30 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
 
   public function testDocumentCreate() {
 
-    $this->Doc->addTranslationString("test", "New Test String");
-    $this->Doc->addTranslationString("test2", "SuperNew Translate string");
+    //$this->Doc->addTranslationString("test", "New Test String");
+    //$this->Doc->addTranslationString("test2", "SuperNew Translate string");
+    $DefSection = $this->Doc->addSection("default");
+
+    $DefSection->addTranslationString("post_title", "test");
+    $DefSection->addTranslationString("post_content", "test");
+    $DefSection->addTranslationString("post_excerpt", "1");
+
+    $this->Doc->addTranslationString("post_title", "test");
+    $this->Doc->addTranslationString("post_content", "test");
+    $this->Doc->addTranslationString("post_excerpt", "1");
+
+    $MetaSection = $this->Doc->addSection("postmeta");
+    $MetaSection->addTranslationString("custom_field_1_1", "value1");
+    $MetaSection->addTranslationString("custom_field_1_2", "value2");
+    $MetaSection->addTranslationString("custom_field_1_3", "value3");
+
+    $MetaSection->addTranslationString("custom_field_2_1", "just one value");
 
     $filename = "TranslationTest-" . time();
     $this->Doc->setName($filename);
     $this->Doc->setType("product");
 
+    print_r(json_encode($this->Doc->_sections, JSON_PRETTY_PRINT));
     $this->Doc->createTranslation();
 
     $this->assertEquals(4, $this->Doc->getConnection()->getRequestCount());

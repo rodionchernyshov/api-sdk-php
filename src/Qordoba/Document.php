@@ -5,6 +5,11 @@ namespace Qordoba;
 use Qordoba\Exception\DocumentException;
 
 use Qordoba\Project;
+use Qordoba\Connection;
+
+use Qordoba\TranslateSection;
+use Qordoba\TranslateString;
+
 
 class Document {
 
@@ -123,5 +128,53 @@ class Document {
     }
 
     return $langs;
+  }
+
+  public function addTranslationString($key, $value) {
+    if(isset($this->_sections[$key])) {
+      throw new DocumentException("String already exists. Please use method to edit it.", DocumentException::TRANSLATION_STRING_EXISTS);
+    }
+
+    $this->_sections[$key] = new TranslateString($key, $value, $this);
+    return true;
+  }
+
+  public function updateTranslationString($key, $value) {
+    if(!isset($this->_sections[$key]) || $this->_sections[$key] instanceof TranslateSection) {
+      throw new DocumentException("String not exists. Please use method to edit it.", DocumentException::TRANSLATION_STRING_NOT_EXISTS);
+    }
+
+    $this->_sections[$key] = new TranslateString($key, $value, $this);;
+    return true;
+  }
+
+
+  public function removeTranslationString($searchChunk) {
+    if(isset($this->_sections[$searchChunk])) {
+      return $this->removeTranslationStringByKey($searchChunk);
+    } else {
+      return $this->removeTranslationStringByValue($searchChunk);
+    }
+  }
+
+  private function removeTranslationStringByKey($searchChunk) {
+    if(isset($this->_sections[$searchChunk]) && $this->_sections[$searchChunk] instanceof TranslateString) {
+      unset($this->_sections[$searchChunk]);
+      return true;
+    }
+
+    return false;
+  }
+
+  private function removeTranslationStringByValue($searchChunk) {
+    $result = false;
+    foreach($this->_sections as $key => $val) {
+      if($searchChunk == $val && $this->_sections[$key] instanceof TranslateString) {
+        unset($this->_sections[$key]);
+        $result = true;
+      }
+    }
+
+    return $result;
   }
 }
