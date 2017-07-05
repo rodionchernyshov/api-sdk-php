@@ -2,6 +2,8 @@
 
 namespace Qordoba;
 
+use Qordoba\Exception\DocumentException;
+
 class TranslateSection implements \JsonSerializable {
 
   public $_key;
