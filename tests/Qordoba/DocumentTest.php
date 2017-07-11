@@ -115,33 +115,29 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
   }
 
   public function testDocumentCreate() {
+    $this->Doc = new Qordoba\Document(
+      $this->apiUrl,
+      $this->login,
+      $this->pass,
+      $this->projectId,
+      $this->orgId);
 
-    //$this->Doc->addTranslationString("test", "New Test String");
-    //$this->Doc->addTranslationString("test2", "SuperNew Translate string");
-    $DefSection = $this->Doc->addSection("default");
+    $DefSection = $this->Doc->addSection("data");
 
-    $DefSection->addTranslationString("post_title", "test");
-    $DefSection->addTranslationString("post_content", "test");
-    $DefSection->addTranslationString("post_excerpt", "1");
+    $DefSection->addTranslationString("column1", "translate this for me");
+    $DefSection->addTranslationString("column2", "others");
+    $DefSection->addTranslationString("column3", "legends");
+    $DefSection->addTranslationString("column4", "my country is beautiful");
 
-    $this->Doc->addTranslationString("post_title", "test");
-    $this->Doc->addTranslationString("post_content", "test");
-    $this->Doc->addTranslationString("post_excerpt", "1");
-
-    $MetaSection = $this->Doc->addSection("postmeta");
-    $MetaSection->addTranslationString("custom_field_1_1", "value1");
-    $MetaSection->addTranslationString("custom_field_1_2", "value2");
-    $MetaSection->addTranslationString("custom_field_1_3", "value3");
-
-    $MetaSection->addTranslationString("custom_field_2_1", "just one value");
-
-    $filename = "TranslationTest-" . time();
+    $filename = "testdoc";
+    $this->Doc->setTag("v3");
     $this->Doc->setName($filename);
-    $this->Doc->setType("product");
 
+    print_r("\n");
     print_r(json_encode($this->Doc->_sections, JSON_PRETTY_PRINT));
-    $this->Doc->createTranslation();
-
+    $fileId = $this->Doc->createTranslation();
+    print_r("\n\n");
+    print_r(json_encode($fileId, JSON_PRETTY_PRINT));
     $this->assertEquals(4, $this->Doc->getConnection()->getRequestCount());
 
     foreach($this->Doc->getConnection()->getRequests() as $key => $response) {

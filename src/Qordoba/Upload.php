@@ -45,5 +45,7 @@ class Upload {
 
   public function appendToProject($tagName = "New") {
     $fileId = $this->connection->requestAppendToProject($this->fileName, $this->uploadId, $tagName, $this->projectId);
+
+    return $fileId;
   }
 }

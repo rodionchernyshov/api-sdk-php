@@ -110,7 +110,7 @@ class Document {
     $translateStruct->{$this->getType()} = [];
     array_push($translateStruct->{$this->getType()}, $this->translationStrings);*/
 
-    $this->project->update($this->getName(), json_encode($this->_sections), $this->getTag());
+    return $this->project->update($this->getName(), json_encode($this->_sections), $this->getTag());
   }
 
   public function checkTranslation($languageCode = null) {
