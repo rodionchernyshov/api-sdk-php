@@ -31,15 +31,24 @@ class Upload {
   }
 
 
-  public function sendFile($fileName, $content) {
+  public function searchTranslationFile($fileName, $tag) {
+    $this->connection->fetchFilenameSearch($fileName, $tag);
+  }
+
+  public function sendFile($fileName, $content, $update = false, $fileId = 0, $tag = null) {
     $this->setFileName($fileName);
 
     $tmpfile = tempnam(sys_get_temp_dir(), $fileName);
     file_put_contents($tmpfile, $content);
 
+    if($update) {
+      $uploaId = $this->connection->requestFileUploadUpdate($this->getFileName(), $tmpfile, $this->projectId, $fileId);
+      $this->uploadId = $uploaId;
+      return $this->uploadId;
+    }
+
     $uploaId = $this->connection->requestFileUpload($this->getFileName(), $tmpfile, $this->projectId, $this->organizationId);
     $this->uploadId = $uploaId;
-
     return $this->uploadId;
   }
 

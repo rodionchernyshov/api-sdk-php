@@ -20,6 +20,7 @@ class Document {
   private $type               = "default";
   private $tag                = "New";
   private $name               = "";
+  private $id                 = null;
   private $languages          = null;
 
   public $_sections          = [];
@@ -61,6 +62,15 @@ class Document {
     return $this->tag;
   }
 
+  public function setId($id) {
+    $this->id = $id;
+  }
+
+  public function getId() {
+    return $this->id;
+  }
+
+
   public function addSection($key) {
     $this->_sections[$key] = new TranslateSection($key);
     return $this->_sections[$key];
@@ -97,20 +107,37 @@ class Document {
   }
 
   public function createTranslation() {
-    /*$translateStruct = new \StdClass();
-    $translateStruct->{$this->getType()} = [];
-    array_push($translateStruct->{$this->getType()}, $this->translationStrings);*/
-
-
-    return $this->project->upload($this->getName(), json_encode($this->_sections), $this->getTag());
+    $this->id = $this->project->upload($this->getName(), json_encode($this->_sections), $this->getTag());
+    return $this->getId();
   }
 
   public function updateTranslation() {
-    /*$translateStruct = new \StdClass();
-    $translateStruct->{$this->getType()} = [];
-    array_push($translateStruct->{$this->getType()}, $this->translationStrings);*/
+    if(!$this->getId()) {
+      //Seatch for file
+      $locales = $this->getProject()->check($this->getName(), null, null, "none");
+      $locale = null;
+      foreach($locales as $key => $val) {
+        if(count($val->pages) > 0) {
+          foreach($val->pages as $inkey => $page) {
+            //if($page->version_tag == $this->getTag()) {
+              $locale = $val->pages[$inkey];
+              break;
+            //}
+          }
+          break;
+        }
+      }
 
-    return $this->project->update($this->getName(), json_encode($this->_sections), $this->getTag());
+      if($locale == null) {
+        throw new DocumentException("You must create file before updating.");
+      }
+
+      $this->setId($locale->page_id);
+    }
+
+    if($this->project->update($this->getName(), json_encode($this->_sections), $this->getTag(), $this->getId())) {
+      return $this->getId();
+    };
   }
 
   public function checkTranslation($languageCode = null) {

@@ -127,6 +127,49 @@ class Connection {
     return $this->getApiKey();
   }
 
+  public function requestFileUploadUpdate($fileName, $filePath, $projectId, $fileId) {
+    $authToken = $this->requestAuthToken();
+
+    $apiUrl = $this->getApiUrl()
+      . '/projects/' . $projectId
+      . '/files/' . $fileId
+      . '/update/upload'
+      . '?content_type_code=JSON';
+
+    $options = [
+      'multipart' => [
+        [
+          'name' => 'user_key',
+          'contents' => $authToken
+        ],
+        [
+          'name' => 'file_names',
+          'contents' => '[]'
+        ],
+        [
+          'name' => 'file',
+          'contents' => file_get_contents($filePath),
+          'filename' => $fileName,
+          'headers'  => [
+            'Content-Type' => 'application/octet-stream'
+          ]
+        ]
+      ],
+      'headers' => [
+        'X-AUTH-TOKEN' => $authToken
+      ]
+    ];
+
+    $response   = $this->processRequest('POST', $apiUrl, $options);
+    $result     = json_decode($response->getBody()->getContents());
+
+    if(!$result->id) {
+      throw new ConnException("File upload failed");
+    }
+
+    return $result->id;
+  }
+
   public function requestFileUpload($fileName, $filePath, $projectId, $organizationId) {
     $authToken = $this->requestAuthToken();
 

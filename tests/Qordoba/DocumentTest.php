@@ -130,12 +130,17 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
     $DefSection->addTranslationString("column4", "my country is beautiful");
 
     $filename = "testdoc";
-    $this->Doc->setTag("v3");
+    $this->Doc->setTag("v4");
     $this->Doc->setName($filename);
+    $Meta = $this->Doc->getProject()->getMetadata();
 
     print_r("\n");
+    print_r(json_encode($Meta, JSON_PRETTY_PRINT));
+
+    print_r("\n\n");
     print_r(json_encode($this->Doc->_sections, JSON_PRETTY_PRINT));
     $fileId = $this->Doc->createTranslation();
+
     print_r("\n\n");
     print_r(json_encode($fileId, JSON_PRETTY_PRINT));
     $this->assertEquals(4, $this->Doc->getConnection()->getRequestCount());
@@ -154,26 +159,36 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
   }
 
   public function testDocumentUpdate() {
+    $this->Doc = new Qordoba\Document(
+      $this->apiUrl,
+      $this->login,
+      $this->pass,
+      $this->projectId,
+      $this->orgId);
 
-    $this->Doc->addTranslationString("test", "New Test String");
-    $this->Doc->addTranslationString("test2", "SuperNew Translate string");
+    $DefSection = $this->Doc->addSection("data");
 
-    $filename = "TranslationTest-" . time();
+    $DefSection->addTranslationString("column1", "translate this for me");
+    $DefSection->addTranslationString("column2", "others");
+    $DefSection->addTranslationString("column3", "legends");
+    $DefSection->addTranslationString("column4", "my country is beautiful");
 
+    $filename = "testdoc";
+    $this->Doc->setTag("v10");
     $this->Doc->setName($filename);
-    $this->Doc->setType("product");
+    $Meta = $this->Doc->getProject()->getMetadata();
 
-    $this->Doc->createTranslation();
+    $fileId = $this->Doc->createTranslation();
 
-    $this->assertEquals(4, $this->Doc->getConnection()->getRequestCount());
+    $this->assertEquals(5, $this->Doc->getConnection()->getRequestCount());
 
     foreach($this->Doc->getConnection()->getRequests() as $key => $response) {
       $this->assertEquals("200", $response->getStatusCode());
     }
 
-    $this->Doc->updateTranslationString("test", "New Test String after Update");
+    $DefSection->addTranslationString("column5", "UPDATE");
 
-    $this->Doc->setTag("Updated");
+    $this->Doc->setTag("Updated5");
     $this->Doc->updateTranslation();
 
     $testLang = (array)$this->Doc->getProjectLanguages();
@@ -181,6 +196,8 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
 
     //Searching for submitted doc
     $submittedDocs = $this->Doc->getConnection()->fetchProjectSearch($this->projectId, $testLang->id, $filename, "none");
+    print_r("\n\n");
+    print_r(json_encode($submittedDocs, JSON_PRETTY_PRINT));
 
     $this->assertTrue($submittedDocs->meta->paging->total_results > 0);
 

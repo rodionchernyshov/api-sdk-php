@@ -22,6 +22,10 @@ class Project {
     $this->upload = new Upload($this->connection, $this->getProjectId(), $this->getOrganizationId());
   }
 
+  public function getUpload() {
+    return $this->upload;
+  }
+
   public function setProjectId($projectId) {
     $this->projectId = $projectId;
   }
@@ -68,14 +72,14 @@ class Project {
   }
 
 
-  public function update($documentName, $jsonToTranslate, $tag = null) {
+  public function update($documentName, $jsonToTranslate, $tag = null, $fileId = null) {
     $this->fetchMetadata();
 
-    $this->upload->sendFile($documentName . ".json", $jsonToTranslate);
+    $this->upload->sendFile($documentName . ".json", $jsonToTranslate, true, $fileId, $tag);
     return $this->upload->appendToProject($tag);
   }
 
-  public function check($documentName, $languageCode = null, $tag = null) {
+  public function check($documentName, $languageCode = null, $tag = null, $status = "completed") {
     if(!$documentName || mb_strlen($documentName) == 0) {
       throw new ProjectException("Document name is not defined.");
     }
@@ -86,7 +90,7 @@ class Project {
     $langsByCode = [];
     foreach($this->getMetadata()->project->target_languages as $key => $lang) {
       $langsByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-      $result[$lang->code] = $this->connection->fetchProjectSearch($this->getProjectId(), $lang->id, $documentName . ".json", "completed");
+      $result[$lang->code] = $this->connection->fetchProjectSearch($this->getProjectId(), $lang->id, $documentName . ".json", $status);
     }
     if(($languageCode != null && $langsByCode[$languageCode] != null) && isset($result[$languageCode])) {
       return [$languageCode => $result[$languageCode]];
