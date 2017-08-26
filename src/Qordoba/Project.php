@@ -64,18 +64,37 @@ class Project {
     return $this->metadata;
   }
 
-  public function upload($documentName, $jsonToTranslate, $tag = null) {
+  private function checkProjectType($projectType) {
+    $meta = $this->getMetadata();
+
+    $type_found = false;
+    foreach($meta->project->content_type_codes as $key => $type) {
+      if($type->extensions[0] == $projectType) {
+        $type_found = true;
+      }
+    }
+
+    if(!$type_found) {
+      throw new DocumentException("Sorry, this type of documents not supported by the project.");
+    }
+  }
+
+  public function upload($documentName, $jsonToTranslate, $tag = null, $type = 'json') {
     $this->fetchMetadata();
 
-    $this->upload->sendFile($documentName . ".json", $jsonToTranslate);
+    $this->checkProjectType($type);
+
+    $this->upload->sendFile($documentName . "." . $type, $jsonToTranslate);
     return $this->upload->appendToProject($tag);
   }
 
 
-  public function update($documentName, $jsonToTranslate, $tag = null, $fileId = null) {
+  public function update($documentName, $jsonToTranslate, $tag = null, $fileId = null, $type = 'json') {
     $this->fetchMetadata();
 
-    $this->upload->sendFile($documentName . ".json", $jsonToTranslate, true, $fileId, $tag);
+    $this->checkProjectType($type);
+
+    $this->upload->sendFile($documentName . "." . $type, $jsonToTranslate, true, $fileId, $tag);
     return $this->upload->appendToProject($tag);
   }
 
@@ -101,7 +120,7 @@ class Project {
     return $result;
   }
 
-  public function fetch($documentName, $languageCode = null, $tag = null) {
+  public function fetch($documentName, $languageCode = null, $tag = null, $type = 'json') {
     if(!$documentName || mb_strlen($documentName) == 0) {
       throw new ProjectException("Document name is not defined.");
     }
@@ -131,7 +150,7 @@ class Project {
     $langsByCode = [];
     foreach($this->getMetadata()->project->target_languages as $key => $lang) {
       $langsByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-      $result[$lang->code] = $this->connection->fetchProjectSearch($this->getProjectId(), $lang->id, $documentName . ".json", "completed");
+      $result[$lang->code] = $this->connection->fetchProjectSearch($this->getProjectId(), $lang->id, $documentName . "." . $type, "completed");
     }
 
     foreach($results as $lang => $version) {

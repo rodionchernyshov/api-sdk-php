@@ -70,8 +70,13 @@ While you try to create Document object - yuo need to pass 4 parameters for into
 $Doc = new Qordoba\Document($apiUrl, $login, $pass, $projectId, $orgId);
 $Doc->setName("Translation Test");
 ```
-## Forming translation strings
+## Forming translation strings / JSON
 Library dedicates structure to handle tranlation strings createion and update routines.
+
+First of all - set appropriate doument type:
+```
+$Doc->setType('json');
+```
 
 Add new Section:
 ```
@@ -107,6 +112,18 @@ Removing string through it own method
 ```
 $TestString->unlink();
 ```
+
+## Forming translation content / HTML
+Set Document type for HTML translation:
+```
+$Doc->setType('html');
+```
+
+Appending content to Document:
+```
+$Doc->addTranslationContent("<html><body><div>Testing Content</div><div>Another Testing Content</div></body></html>");
+```
+
 
 ## Sending formed document for translation
 

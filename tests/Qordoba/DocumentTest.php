@@ -10,7 +10,7 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
   public $apiUrl    = "https://app.qordoba.com/api/";
   public $login     = "polina.popadenko@dev-pro.net";
   public $pass      = "WE54iloCKa";
-  public $projectId = 3693;
+  public $projectId = 4910;
   public $orgId     = 3144;
 
   public $Doc       = null;
@@ -112,6 +112,23 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
     $meta = $this->Doc->getMetadata();
     $this->assertEquals(2, $this->Doc->getConnection()->getRequestCount());
     $this->assertArrayHasKey("languages", $meta);
+  }
+
+  public function testDocumentCreateHTML() {
+    $this->Doc = new Qordoba\Document(
+      $this->apiUrl,
+      $this->login,
+      $this->pass,
+      $this->projectId,
+      $this->orgId);
+
+    $filename = "testdoc-html";
+    $this->Doc->setType("html");
+    $this->Doc->setTag("v4");
+    $this->Doc->setName($filename);
+
+    $this->Doc->addTranslationContent("<html><body><div>Testing Content</div><div>Another Testing Content</div></body></html>");
+    $this->Doc->createTranslation();
   }
 
   public function testDocumentCreate() {
