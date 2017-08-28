@@ -339,9 +339,13 @@ class Connection {
     ];
 
     $response   = $this->processRequest('GET', $apiUrl, $options);
-    $result     = json_decode($response->getBody()->getContents());
+    $result     = $response->getBody()->getContents();
 
-    return $result;
+    $json       = json_decode($result);
+    if(json_last_error() != JSON_ERROR_NONE) {
+      return $result;
+    }
+    return $json;
   }
 
   private function processRequest($method, $apiUrl, $options) {

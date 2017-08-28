@@ -122,13 +122,38 @@ class QordobaDocumentTest extends \PHPUnit\Framework\TestCase {
       $this->projectId,
       $this->orgId);
 
-    $filename = "testdoc-html";
+    $filename = "testdoc-html-2";
     $this->Doc->setType("html");
     $this->Doc->setTag("v4");
     $this->Doc->setName($filename);
 
     $this->Doc->addTranslationContent("<html><body><div>Testing Content</div><div>Another Testing Content</div></body></html>");
     $this->Doc->createTranslation();
+  }
+
+  public function testDocumentCheckHTML() {
+    $this->Doc = new Qordoba\Document(
+      $this->apiUrl,
+      $this->login,
+      $this->pass,
+      $this->projectId,
+      $this->orgId);
+
+    $filename = "testdoc-html-5";
+    $this->Doc->setType("html");
+    $this->Doc->setTag("v4");
+    $this->Doc->setName($filename);
+
+    $languages = $this->Doc->getProjectLanguages();
+
+    $checkLangs = [];
+    foreach($languages as $key => $lang) {
+      array_push($checkLangs, $lang->code);
+    }
+    $checkLang = "de-de";
+
+    $result = $this->Doc->fetchTranslation($checkLang);
+    var_dump($result);
   }
 
   public function testDocumentCreate() {
