@@ -2,58 +2,123 @@
 
 namespace Qordoba\Test;
 
+use Faker\Factory;
+use PHPUnit\Framework\TestCase;
 use Qordoba;
+use Qordoba\Connection;
 
-class QordobaConnectionTest extends \PHPUnit\Framework\TestCase {
+/**
+ * Class QordobaConnectionTest
+ * @package Qordoba\Test
+ */
+class QordobaConnectionTest extends TestCase
+{
 
-  public $apiUrl = "https://app.qordoba.com/api/";
-  public $login  = "polina.popadenko@dev-pro.net";
-  public $pass   = "WE54iloCKa";
+    /**
+     * @var string
+     */
+    private $fakeApiUrl = 'http://app.qordoba.com';
+    /**
+     * @var string
+     */
+    private $apiUrl = 'https://app.qordoba.com/api/';
+    /**
+     * @var string
+     */
+    private $login = 'rodion.chernyshov@easternpeak.com';
+    /**
+     * @var string
+     */
+    private $password = 'NeoMacuser571';
 
-  public function testConnectionAbsentParams() {
-    $Conn = new Qordoba\Connection();
+    /**
+     * @throws Qordoba\Exception\AuthException
+     * @throws Qordoba\Exception\ConnException
+     */
+    public function testConnectionAbsentParams()
+    {
+        $connection = new Connection();
 
-    $this->expectException("Qordoba\Exception\AuthException");
-    $Conn->requestAuthToken();
-  }
+        $this->expectException('Qordoba\Exception\AuthException');
+        $token = $connection->requestAuthToken();
 
-  public function testConnectionAbsentUsername() {
-    $Conn = new Qordoba\Connection();
+        $this->assertToken($token);
+    }
 
-    $Conn->setPassword("password");
-    $Conn->setApiUrl("http://app.qordoba.com");
+    /**
+     * @throws Qordoba\Exception\AuthException
+     * @throws Qordoba\Exception\ConnException
+     */
+    public function testConnectionAbsentUsername()
+    {
+        $connection = new Connection();
 
-    $this->expectException("Qordoba\Exception\AuthException");
-    $Conn->requestAuthToken();
-  }
+        $connection->setPassword(Factory::create()->password(8));
+        $connection->setApiUrl($this->fakeApiUrl);
 
-  public function testConnectionAbsentPassword() {
-    $Conn = new Qordoba\Connection();
+        $this->expectException('Qordoba\Exception\AuthException');
+        $token = $connection->requestAuthToken();
 
-    $Conn->setUsername("test");
-    $Conn->setApiUrl("http://app.qordoba.com");
+        $this->assertToken($token);
+    }
 
-    $this->expectException("Qordoba\Exception\AuthException");
-    $Conn->requestAuthToken();
-  }
+    /**
+     * @throws Qordoba\Exception\AuthException
+     * @throws Qordoba\Exception\ConnException
+     */
+    public function testConnectionAbsentPassword()
+    {
+        $connection = new Connection();
 
-  public function testConnectionAbsentURL() {
-    $Conn = new Qordoba\Connection();
+        $connection->setUsername(Factory::create()->userName);
+        $connection->setApiUrl($this->fakeApiUrl);
 
-    $Conn->setUsername("test");
-    $Conn->setPassword("password");
+        $this->expectException('Qordoba\Exception\AuthException');
+        $token = $connection->requestAuthToken();
 
-    $this->expectException("Qordoba\Exception\ConnException");
-    $Conn->requestAuthToken();
-  }
+        $this->assertToken($token);
+    }
 
-  public function testConnection() {
-    $Conn = new Qordoba\Connection();
+    /**
+     * @throws Qordoba\Exception\AuthException
+     * @throws Qordoba\Exception\ConnException
+     */
+    public function testConnectionAbsentURL()
+    {
+        $connection = new Connection();
 
-    $Conn->setUsername($this->login);
-    $Conn->setPassword($this->pass);
-    $Conn->setApiUrl($this->apiUrl);
+        $connection->setUsername(Factory::create()->userName);
+        $connection->setPassword(Factory::create()->password(8));
 
-    $Conn->requestAuthToken();
-  }
+        $this->expectException('Qordoba\Exception\ConnException');
+        $token = $connection->requestAuthToken();
+
+        $this->assertToken($token);
+    }
+
+    /**
+     * @throws Qordoba\Exception\AuthException
+     * @throws Qordoba\Exception\ConnException
+     */
+    public function testConnection()
+    {
+        $connection = new Connection();
+
+        $connection->setUsername($this->login);
+        $connection->setPassword($this->password);
+        $connection->setApiUrl($this->apiUrl);
+
+        $token = $connection->requestAuthToken();
+
+        $this->assertToken($token);
+    }
+
+    /**
+     * @param string $token
+     */
+    private function assertToken($token)
+    {
+        $this->assertTrue(is_string($token));
+        $this->assertFalse(empty($token));
+    }
 }
