@@ -1,6 +1,6 @@
 {
   "name": "qordoba/qordoba-php",
-  "version": "0.1.10",
+  "version": "1.0.0",
   "autoload": {
     "psr-0": {
       "Qordoba": "src/",
@@ -10,6 +10,7 @@
       "src/Qordoba/Helpers.php"
     ]
   },
+  "minimum-stability": "stable",
   "require": {
     "php": "^5.4 || 7.*",
     "guzzlehttp/guzzle": "~6.0",
