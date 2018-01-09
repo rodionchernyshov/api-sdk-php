@@ -237,9 +237,11 @@ class QordobaDocumentTest extends TestCase
         $document->setName(self::STANDARD_DOCUMENT_NAME);
         $this->assertTrue($document->addTranslationContent(Factory::create()->randomHtml(5)));
         $this->assertInternalType(IsType::TYPE_INT, $document->createTranslation());
-        return ['tag' => $tag];
     }
     
+    /**
+     *
+     */
     public function createDefaultHTMLDocument()
     {
         try {
