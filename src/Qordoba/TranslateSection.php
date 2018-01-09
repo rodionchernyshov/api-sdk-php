@@ -1,4 +1,10 @@
 <?php
+/**
+ * @category Qordoba PHP SDK
+ * @package Qordoba_Connector
+ * @copyright Copyright (c) 2018
+ * @license https://www.qordoba.com/terms
+ */
 
 namespace Qordoba;
 
@@ -15,7 +21,7 @@ class TranslateSection implements \JsonSerializable {
 
   public function addTranslationString($key, $value) {
     if(isset($this->_strings[$key])) {
-      throw new DocumentException("String already exists. Please use method to edit it.", DocumentException::TRANSLATION_STRING_EXISTS);
+      throw new DocumentException('String already exists. Please use method to edit it.', DocumentException::TRANSLATION_STRING_EXISTS);
     }
 
     $this->_strings[$key] = new TranslateString($key, $value, $this);
@@ -24,11 +30,11 @@ class TranslateSection implements \JsonSerializable {
 
   public function updateTranslationString($key, $value) {
     if(!isset($this->_strings[$key])) {
-      throw new DocumentException("String not exists. Please use method to edit it.", DocumentException::TRANSLATION_STRING_NOT_EXISTS);
+      throw new DocumentException('String not exists. Please use method to edit it.', DocumentException::TRANSLATION_STRING_NOT_EXISTS);
     }
 
-    $this->_strings[$key] = new TranslateString($key, $value, $this);;
-    return true;
+    $this->_strings[$key] = new TranslateString($key, $value, $this);
+	  return true;
   }
 
 

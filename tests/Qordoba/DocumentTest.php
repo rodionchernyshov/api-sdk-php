@@ -10,6 +10,7 @@ use Qordoba\Document;
 
 /**
  * Class QordobaDocumentTest
+ *
  * @package Qordoba\Test
  */
 class QordobaDocumentTest extends TestCase
@@ -34,7 +35,7 @@ class QordobaDocumentTest extends TestCase
      * @const string
      */
     const DOCUMENT_TYPE_HTML = 'html';
-
+    
     /**
      * @var string
      */
@@ -55,36 +56,18 @@ class QordobaDocumentTest extends TestCase
      * @var int
      */
     public $organizationId = 3169;
-
+    
     /**
      * @var Document
      */
     public $document;
-
+    
     /**
-     * @return Document
-     */
-    public function createDocument()
-    {
-        return new Document(
-            $this->apiUrl,
-            $this->login,
-            $this->password,
-            $this->projectId,
-            $this->organizationId
-        );
-    }
-
-    /**
-     * @return string
-     */
-    public function createFileName()
-    {
-        return str_replace(' ', '-', Factory::create()->sentence());
-    }
-
-    /**
-     * @throws Qordoba\Exception\DocumentException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ServerException
      */
     public function testDocumentDefaults()
     {
@@ -97,9 +80,23 @@ class QordobaDocumentTest extends TestCase
         $this->assertEquals(self::DEFAULT_DOCUMENT_TAG, $document->getTag());
         $this->assertEmpty($document->getName());
         $this->assertInternalType(IsType::TYPE_ARRAY, $document->getProjectLanguages());
-        $this->assertFalse(0 === count($document->getProjectLanguages()), 'Project has to have languages');
+        $this->assertNotCount(0, $document->getProjectLanguages(), 'Project has to have languages');
     }
-
+    
+    /**
+     * @return Document
+     */
+    public function createDocument()
+    {
+        return new Document(
+           $this->apiUrl,
+           $this->login,
+           $this->password,
+           $this->projectId,
+           $this->organizationId
+        );
+    }
+    
     /**
      *
      */
@@ -110,8 +107,7 @@ class QordobaDocumentTest extends TestCase
         $document->setName($documentName);
         $this->assertEquals($documentName, $document->getName());
     }
-
-
+    
     /**
      *
      */
@@ -119,8 +115,7 @@ class QordobaDocumentTest extends TestCase
     {
         $this->assertEquals(self::DEFAULT_DOCUMENT_TAG, $this->createDocument()->getTag());
     }
-
-
+    
     /**
      *
      */
@@ -131,8 +126,7 @@ class QordobaDocumentTest extends TestCase
         $document->setTag($documentTag);
         $this->assertEquals($documentTag, $document->getTag());
     }
-
-
+    
     /**
      *
      */
@@ -140,8 +134,7 @@ class QordobaDocumentTest extends TestCase
     {
         $this->assertEquals(self::DOCUMENT_TYPE_JSON, $this->createDocument()->getType());
     }
-
-
+    
     /**
      *
      */
@@ -151,8 +144,7 @@ class QordobaDocumentTest extends TestCase
         $document->setType(self::DOCUMENT_TYPE_JSON);
         $this->assertEquals(self::DOCUMENT_TYPE_JSON, $document->getType());
     }
-
-
+    
     /**
      * @throws Qordoba\Exception\DocumentException
      */
@@ -160,14 +152,13 @@ class QordobaDocumentTest extends TestCase
     {
         $document = $this->createDocument();
         $this->assertFalse($document->getTranslationString(Factory::create()->word));
-
+    
         $stringKey = Factory::create()->word;
         $stringBody = Factory::create()->sentence();
-
+    
         $this->assertTrue($document->addTranslationString($stringKey, $stringBody));
     }
-
-
+    
     /**
      * @throws Qordoba\Exception\DocumentException
      */
@@ -175,20 +166,20 @@ class QordobaDocumentTest extends TestCase
     {
         $document = $this->createDocument();
         $this->assertFalse($document->getTranslationString(Factory::create()->word));
-
+    
         $section = $document->addSection(Factory::create()->word);
-
+    
         $this->assertInstanceOf('Qordoba\TranslateSection', $section);
         $this->assertInternalType(IsType::TYPE_ARRAY, $section->jsonSerialize());
-        $this->assertEquals(0, count($section->jsonSerialize()));
-
+        $this->assertCount(0, $section->jsonSerialize());
+    
         $this->assertTrue($section->addTranslationString(Factory::create()->word, Factory::create()->sentence()));
         $this->assertTrue($section->addTranslationString(Factory::create()->word, Factory::create()->sentence()));
-
+    
         $this->assertInternalType(IsType::TYPE_ARRAY, $section->jsonSerialize());
-        $this->assertEquals(2, count($section->jsonSerialize()));
+        $this->assertCount(2, $section->jsonSerialize());
     }
-
+    
     /**
      * @throws Qordoba\Exception\DocumentException
      */
@@ -197,13 +188,13 @@ class QordobaDocumentTest extends TestCase
         $document = $this->createDocument();
         $stringKey = Factory::create()->word;
         $this->assertTrue(
-            $document->addTranslationString($stringKey, Factory::create()->sentence())
+           $document->addTranslationString($stringKey, Factory::create()->sentence())
         );
         $this->assertTrue(
-            $document->updateTranslationString($stringKey, Factory::create()->sentence())
+           $document->updateTranslationString($stringKey, Factory::create()->sentence())
         );
     }
-
+    
     /**
      * @throws Qordoba\Exception\DocumentException
      */
@@ -211,13 +202,14 @@ class QordobaDocumentTest extends TestCase
     {
         $document = $this->createDocument();
         $stringKey = Factory::create()->word;
-        $this->assertTrue($document->addTranslationString($stringKey, Factory::create()->sentence(rand(5, 10))));
+        $this->assertTrue($document->addTranslationString($stringKey, Factory::create()->sentence(mt_rand(5, 10))));
         $this->assertTrue($document->removeTranslationString($stringKey));
-        $this->assertTrue($document->addTranslationString($stringKey, Factory::create()->sentence(rand(5, 10))));
+        $this->assertTrue($document->addTranslationString($stringKey, Factory::create()->sentence(mt_rand(5, 10))));
     }
-
+    
     /**
      *
+     * @throws \Exception
      */
     public function testGetLanguagesMetaData()
     {
@@ -227,30 +219,64 @@ class QordobaDocumentTest extends TestCase
         $this->assertArrayHasKey('languages', $meta);
         $this->assertTrue(0 < count($meta['languages']));
     }
-
+    
     /**
-     * @throws Qordoba\Exception\DocumentException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ServerException
+     * @throws \Qordoba\Exception\UploadException
      */
     public function testCreateHTMLDocument()
     {
         $document = $this->createDocument();
         $document->setType(self::DOCUMENT_TYPE_HTML);
-        $document->setTag((string)Factory::create()->randomDigit);
-        $document->setName($this->createFileName());
+        $tag = (string)Factory::create()->randomDigit;
+        $document->setTag($tag);
+        $document->setName(self::STANDARD_DOCUMENT_NAME);
         $this->assertTrue($document->addTranslationContent(Factory::create()->randomHtml(5)));
         $this->assertInternalType(IsType::TYPE_INT, $document->createTranslation());
+        return ['tag' => $tag];
     }
-
+    
+    public function createDefaultHTMLDocument()
+    {
+        try {
+            $document = $this->createDocument();
+            $document->setType(self::DOCUMENT_TYPE_HTML);
+            $document->setTag(self::STANDARD_DOCUMENT_TAG);
+            $document->setName(self::STANDARD_DOCUMENT_NAME);
+            $document->addTranslationContent(Factory::create()->randomHtml(5));
+            $document->createTranslation();
+        } catch (\Exception $e) {
+        
+        }
+    }
+    
     /**
-     *
+     * @return string
+     */
+    public function createFileName()
+    {
+        return str_replace(' ', '-', Factory::create()->sentence());
+    }
+    
+    /**
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ProjectException
+     * @throws \Qordoba\Exception\ServerException
      */
     public function testFetchHTMLDocument()
     {
+        $this->createDefaultHTMLDocument();
         $document = $this->createDocument();
         $document->setType(self::DOCUMENT_TYPE_HTML);
         $document->setTag(self::STANDARD_DOCUMENT_TAG);
         $document->setName(self::STANDARD_DOCUMENT_NAME);
-
+    
         $translation = $document->fetchTranslation();
         $this->assertInternalType(IsType::TYPE_ARRAY, $translation);
         $this->assertTrue(0 < count($translation));
@@ -259,43 +285,54 @@ class QordobaDocumentTest extends TestCase
             $this->assertNotEmpty($content);
         }
     }
-
+    
     /**
-     * @throws Qordoba\Exception\DocumentException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ServerException
+     * @throws \Qordoba\Exception\UploadException
      */
     public function testDocumentCreate()
     {
         $document = $this->createDocument();
-
+    
         $section = $document->addSection(Factory::create()->word);
-
+    
         $section->addTranslationString(Factory::create()->word, Factory::create()->sentence());
         $section->addTranslationString(Factory::create()->word, Factory::create()->sentence());
         $section->addTranslationString(Factory::create()->word, Factory::create()->sentence());
         $section->addTranslationString(Factory::create()->word, Factory::create()->sentence());
-
+    
         $filename = $this->createFileName();
         $document->setTag((string)Factory::create()->randomDigit);
         $document->setName($filename);
         $this->assertInternalType(IsType::TYPE_INT, $document->createTranslation());
-
+    
         $this->assertEquals(4, $document->getConnection()->getRequestCount());
-
+    
         foreach ($document->getConnection()->getRequests() as $key => $response) {
             $this->assertEquals(200, $response->getStatusCode());
         }
-
+    
         $languages = (array)$document->getProjectLanguages();
         $language = array_shift($languages);
-
+    
         $submittedDocs = $document->getConnection()
-            ->fetchProjectSearch($this->projectId, $language->id, $filename, 'none');
-
+           ->fetchProjectSearch($this->projectId, $language->id, $filename, 'none');
+    
         $this->assertTrue(0 < $submittedDocs->meta->paging->total_results);
     }
-
+    
     /**
-     * @throws Qordoba\Exception\DocumentException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ProjectException
+     * @throws \Qordoba\Exception\ServerException
+     * @throws \Qordoba\Exception\UploadException
      */
     public function testDocumentUpdate()
     {
@@ -303,28 +340,28 @@ class QordobaDocumentTest extends TestCase
         $updateTag = sprintf('Updated from v.%s', $tag);
         $filename = $this->createFileName();
         $sectionName = Factory::create()->word;
-
+    
         $document = $this->createDocument();
         $document->setTag($tag);
         $document->setName($filename);
-
+    
         $section = $document->addSection($sectionName);
-
+    
         $this->assertTrue($section->addTranslationString(Factory::create()->word, Factory::create()->sentence()));
         $this->assertTrue($section->addTranslationString(Factory::create()->word, Factory::create()->sentence()));
         $this->assertTrue($section->addTranslationString(Factory::create()->word, Factory::create()->sentence()));
-
+    
         $this->assertInternalType(IsType::TYPE_INT, $document->createTranslation());
         $this->assertEquals(4, $document->getConnection()->getRequestCount());
-
+    
         foreach ($document->getConnection()->getRequests() as $key => $response) {
             $this->assertInstanceOf('GuzzleHttp\Psr7\Response', $response);
             $this->assertEquals(200, $response->getStatusCode());
         }
-
+    
         $languages = (array)$document->getProjectLanguages();
         $language = array_shift($languages);
-
+    
         $this->assertObjectHasAttribute('id', $language);
         $this->assertObjectHasAttribute('name', $language);
         $this->assertObjectHasAttribute('code', $language);
@@ -333,58 +370,58 @@ class QordobaDocumentTest extends TestCase
         $this->assertObjectHasAttribute('tm_id', $language);
         $this->assertObjectHasAttribute('glossary_id', $language);
         $this->assertRegExp('/[a-z]{2}-[a-z]{2}/', $language->code);
-
-        $submittedDocs = $document->getConnection()
-            ->fetchProjectSearch($this->projectId, $language->id, $filename, 'none');
-
-
+    
+        $submittedDocs = $document->getConnection()->fetchProjectSearch($this->projectId, $language->id, $filename,
+           'none');
+    
+    
         $this->assertInternalType(IsType::TYPE_ARRAY, $submittedDocs->pages);
         $this->assertTrue(0 < count($submittedDocs->pages));
-
+    
         $this->assertInternalType(IsType::TYPE_OBJECT, $submittedDocs->meta);
-
+    
         $this->assertObjectHasAttribute('paging', $submittedDocs->meta);
         $this->assertObjectHasAttribute('total_results', $submittedDocs->meta->paging);
         $this->assertObjectHasAttribute('total_enabled', $submittedDocs->meta->paging);
         $this->assertInternalType(IsType::TYPE_INT, $submittedDocs->meta->paging->total_enabled);
         $this->assertInternalType(IsType::TYPE_INT, $submittedDocs->meta->paging->total_results);
-
+    
         $document = $this->createDocument();
         $document->setName($filename);
         $document->setTag($updateTag);
-
+    
         $section = $document->addSection($sectionName);
-
+    
         $this->assertTrue(
-            $section->addTranslationString(
-                Factory::create()->word,
-                sprintf('Hello! I\'m an new one \'%s\'', Factory::create()->sentence())
-            )
+           $section->addTranslationString(
+              Factory::create()->word,
+              sprintf('Hello! I\'m an new one \'%s\'', Factory::create()->sentence())
+           )
         );
-
+    
         $this->assertInternalType(IsType::TYPE_INT, $document->updateTranslation());
-
+    
         $submittedDocs = $document->getConnection()
-            ->fetchProjectSearch($this->projectId, $language->id, $filename, 'none');
-
+           ->fetchProjectSearch($this->projectId, $language->id, $filename, 'none');
+    
         $this->assertInternalType(IsType::TYPE_ARRAY, $submittedDocs->pages);
         $this->assertTrue(0 < count($submittedDocs->pages));
-
+    
         $this->assertInternalType(IsType::TYPE_OBJECT, $submittedDocs->meta);
-
+    
         $this->assertObjectHasAttribute('paging', $submittedDocs->meta);
         $this->assertObjectHasAttribute('total_results', $submittedDocs->meta->paging);
         $this->assertObjectHasAttribute('total_enabled', $submittedDocs->meta->paging);
         $this->assertInternalType(IsType::TYPE_INT, $submittedDocs->meta->paging->total_enabled);
         $this->assertInternalType(IsType::TYPE_INT, $submittedDocs->meta->paging->total_results);
-
+    
         $latestDocumentVersion = array_shift($submittedDocs->pages);
-
+    
         $this->assertEquals($updateTag, $latestDocumentVersion->version_tag);
         $this->assertEquals($latestDocumentVersion->url, sprintf('%s.json', $filename));
     }
-
-
+    
+    
     /**
      *
      */
@@ -395,7 +432,7 @@ class QordobaDocumentTest extends TestCase
         $document->setName('Translation Test');
         $projectLanguages = $document->getProjectLanguages();
         $translations = (array)$document->checkTranslation();
-
+    
         foreach ($projectLanguages as $key => $language) {
             $this->assertObjectHasAttribute('id', $language);
             $this->assertObjectHasAttribute('name', $language);
@@ -407,15 +444,15 @@ class QordobaDocumentTest extends TestCase
             $this->assertRegExp('/[a-z]{2}-[a-z]{2}/', $language->code);
             array_push($languages, $language->code);
         }
-
+    
         foreach ($languages as $key => $code) {
             $this->assertArrayHasKey($code, $translations);
             $translation = (array)$document->checkTranslation($code);
             $this->assertArrayHasKey($code, $translation);
         }
     }
-
-
+    
+    
     /**
      *
      */
@@ -428,7 +465,7 @@ class QordobaDocumentTest extends TestCase
         $projectLanguages = $document->getProjectLanguages();
         $translation = $document->fetchTranslation();
         $projectLanguageCodes = [];
-
+    
         foreach ($projectLanguages as $key => $language) {
             $this->assertObjectHasAttribute('id', $language);
             $this->assertObjectHasAttribute('name', $language);
@@ -440,7 +477,7 @@ class QordobaDocumentTest extends TestCase
             $this->assertRegExp('/[a-z]{2}-[a-z]{2}/', $language->code);
             array_push($projectLanguageCodes, $language->code);
         }
-
+    
         foreach ($projectLanguageCodes as $code) {
             $this->assertRegExp('/[a-z]{2}-[a-z]{2}/', $code);
             $this->assertArrayHasKey($code, $translation);

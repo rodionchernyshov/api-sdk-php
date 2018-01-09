@@ -1,23 +1,61 @@
 <?php
+/**
+ * @category Qordoba PHP SDK
+ * @package Qordoba_Connector
+ * @copyright Copyright (c) 2018
+ * @license https://www.qordoba.com/terms
+ */
 
 namespace Qordoba;
 
-class TranslateString implements \JsonSerializable {
+/**
+ * Class TranslateString
+ *
+ * @package Qordoba
+ */
+class TranslateString implements \JsonSerializable
+{
 
-  private $key;
-  private $value;
+	/**
+	 * @var
+	 */
+	private $key;
+	/**
+	 * @var
+	 */
+	private $value;
+	/**
+	 * @var
+	 */
+	private $section;
 
-  public function __construct($key, $value, $section) {
-    $this->key      = $key;
-    $this->value    = $value;
-    $this->section  = $section;
-  }
+	/**
+	 * TranslateString constructor.
+	 *
+	 * @param $key
+	 * @param $value
+	 * @param $section
+	 */
+	public function __construct($key, $value, $section)
+	{
+		$this->key = $key;
+		$this->value = $value;
+		$this->section = $section;
+	}
 
-  public function unlink() {
-    $this->section->removeTranslationString($this->key);
-  }
+	/**
+	 *
+	 */
+	public function unlink()
+	{
+		$this->section->removeTranslationString($this->key);
+	}
 
-  public function jsonSerialize() {
-    return  $this->value;
-  }
+	/**
+	 * @return mixed
+	 */
+	public function jsonSerialize()
+	{
+		return $this->value;
+	}
 }

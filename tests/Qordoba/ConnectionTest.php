@@ -31,10 +31,12 @@ class QordobaConnectionTest extends TestCase
      */
     private $password = 'NeoMacuser571';
 
-    /**
-     * @throws Qordoba\Exception\AuthException
-     * @throws Qordoba\Exception\ConnException
-     */
+	/**
+	 * @throws \Exception
+	 * @throws \Qordoba\Exception\AuthException
+	 * @throws \Qordoba\Exception\ConnException
+	 * @throws \Qordoba\Exception\ServerException
+	 */
     public function testConnectionAbsentParams()
     {
         $connection = new Connection();
@@ -45,10 +47,12 @@ class QordobaConnectionTest extends TestCase
         $this->assertToken($token);
     }
 
-    /**
-     * @throws Qordoba\Exception\AuthException
-     * @throws Qordoba\Exception\ConnException
-     */
+	/**
+	 * @throws \Exception
+	 * @throws \Qordoba\Exception\AuthException
+	 * @throws \Qordoba\Exception\ConnException
+	 * @throws \Qordoba\Exception\ServerException
+	 */
     public function testConnectionAbsentUsername()
     {
         $connection = new Connection();
@@ -62,10 +66,12 @@ class QordobaConnectionTest extends TestCase
         $this->assertToken($token);
     }
 
-    /**
-     * @throws Qordoba\Exception\AuthException
-     * @throws Qordoba\Exception\ConnException
-     */
+	/**
+	 * @throws \Exception
+	 * @throws \Qordoba\Exception\AuthException
+	 * @throws \Qordoba\Exception\ConnException
+	 * @throws \Qordoba\Exception\ServerException
+	 */
     public function testConnectionAbsentPassword()
     {
         $connection = new Connection();
@@ -79,14 +85,15 @@ class QordobaConnectionTest extends TestCase
         $this->assertToken($token);
     }
 
-    /**
-     * @throws Qordoba\Exception\AuthException
-     * @throws Qordoba\Exception\ConnException
-     */
+	/**
+	 * @throws \Exception
+	 * @throws \Qordoba\Exception\AuthException
+	 * @throws \Qordoba\Exception\ConnException
+	 * @throws \Qordoba\Exception\ServerException
+	 */
     public function testConnectionAbsentURL()
     {
         $connection = new Connection();
-
         $connection->setUsername(Factory::create()->userName);
         $connection->setPassword(Factory::create()->password(8));
 
@@ -96,10 +103,12 @@ class QordobaConnectionTest extends TestCase
         $this->assertToken($token);
     }
 
-    /**
-     * @throws Qordoba\Exception\AuthException
-     * @throws Qordoba\Exception\ConnException
-     */
+	/**
+	 * @throws \Exception
+	 * @throws \Qordoba\Exception\AuthException
+	 * @throws \Qordoba\Exception\ConnException
+	 * @throws \Qordoba\Exception\ServerException
+	 */
     public function testConnection()
     {
         $connection = new Connection();
@@ -107,9 +116,7 @@ class QordobaConnectionTest extends TestCase
         $connection->setUsername($this->login);
         $connection->setPassword($this->password);
         $connection->setApiUrl($this->apiUrl);
-
         $token = $connection->requestAuthToken();
-
         $this->assertToken($token);
     }
 
@@ -119,6 +126,6 @@ class QordobaConnectionTest extends TestCase
     private function assertToken($token)
     {
         $this->assertTrue(is_string($token));
-        $this->assertFalse(empty($token));
+        $this->assertNotEmpty($token);
     }
 }

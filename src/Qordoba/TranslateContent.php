@@ -1,49 +1,96 @@
 <?php
+/**
+ * @category Qordoba PHP SDK
+ * @package Qordoba_Connector
+ * @copyright Copyright (c) 2018
+ * @license https://www.qordoba.com/terms
+ */
 
 namespace Qordoba;
 
 use Qordoba\Exception\DocumentException;
 
-class TranslateContent implements \JsonSerializable {
+/**
+ * Class TranslateContent
+ *
+ * @package Qordoba
+ */
+class TranslateContent implements \JsonSerializable
+{
 
-  public $_content = "";
+	/**
+	 * @var string
+	 */
+	public $_content = '';
 
-  public function __construct() {
+	/**
+	 * TranslateContent constructor.
+	 */
+	public function __construct()
+	{
 
-  }
+	}
 
-  public function addContent($value) {
-    if(!empty($this->_content)) {
-      throw new DocumentException("Content already exists. Please use method to edit it.", DocumentException::TRANSLATION_STRING_EXISTS);
-    }
+	/**
+	 * @param $value
+	 * @return bool
+	 * @throws \Qordoba\Exception\DocumentException
+	 */
+	public function addContent($value)
+	{
+		if (!empty($this->_content)) {
+			throw new DocumentException(
+				'Content already exists. Please use method to edit it.',
+				DocumentException::TRANSLATION_STRING_EXISTS
+			);
+		}
 
-    $this->_content = $value;
-    return true;
-  }
+		$this->_content = $value;
+		return true;
+	}
 
-  public function updateContent($value) {
-    if(empty($value)) {
-      throw new DocumentException("Content not exists. Please use method to edit it.", DocumentException::TRANSLATION_STRING_NOT_EXISTS);
-    }
+	/**
+	 * @param $value
+	 * @return bool
+	 * @throws \Qordoba\Exception\DocumentException
+	 */
+	public function updateContent($value)
+	{
+		if (empty($value)) {
+			throw new DocumentException(
+				'Content not exists. Please use method to edit it.',
+				DocumentException::TRANSLATION_STRING_NOT_EXISTS
+			);
+		}
+		$this->_content = $value;
+		return true;
+	}
 
-    $this->_content = $value;
-    return true;
-  }
+	/**
+	 *
+	 */
+	public function removeContent()
+	{
+		$this->_content = '';
+	}
 
+	/**
+	 * @return bool|string
+	 */
+	public function getContent()
+	{
+		if (!empty($this->_content)) {
+			return $this->_content;
+		}
 
-  public function removeConyent($searchChunk) {
-    $this->_content = "";
-  }
+		return false;
+	}
 
-  public function getContent() {
-    if(!empty($this->_content)) {
-      return $this->_content;
-    }
-
-    return false;
-  }
-
-  public function jsonSerialize() {
-    return $this->_content;
-  }
+	/**
+	 * @return mixed|string
+	 */
+	public function jsonSerialize()
+	{
+		return $this->_content;
+	}
 }
