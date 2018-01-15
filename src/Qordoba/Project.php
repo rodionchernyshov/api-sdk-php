@@ -10,293 +10,324 @@ namespace Qordoba;
 
 use Qordoba\Exception\DocumentException;
 use Qordoba\Exception\ProjectException;
-
+use Qordoba\Interfaces\ConnectionInterface;
+use Qordoba\Interfaces\DocumentInterface;
+use Qordoba\Interfaces\ProjectInterface;
 
 /**
  * Class Project
  *
  * @package Qordoba
  */
-class Project
+class Project implements ProjectInterface
 {
-
-	/**
-	 * @var
-	 */
-	private $projectId;
-	/**
-	 * @var
-	 */
-	private $organizationId;
-	/**
-	 * @var \Qordoba\Connection
-	 */
-	private $connection;
-	/**
-	 * @var
-	 */
-	private $metadata;
-
-	/**
-	 * @var null|\Qordoba\Upload
-	 */
-	private $upload;
-
-	/**
-	 * Project constructor.
-	 *
-	 * @param $projectId
-	 * @param $organizationId
-	 * @param \Qordoba\Connection $connection
-	 */
-	public function __construct($projectId, $organizationId, Connection $connection)
-	{
-		$this->setProjectId($projectId);
-		$this->setOrganizationId($organizationId);
-		$this->connection = $connection;
-		$this->upload = new Upload($this->connection, $this->getProjectId(), $this->getOrganizationId());
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getProjectId()
-	{
-		return $this->projectId;
-	}
-
-	/**
-	 * @param $projectId
-	 */
-	public function setProjectId($projectId)
-	{
-		$this->projectId = $projectId;
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getOrganizationId()
-	{
-		return $this->organizationId;
-	}
-
-	/**
-	 * @param $organizationId
-	 */
-	public function setOrganizationId($organizationId)
-	{
-		$this->organizationId = $organizationId;
-	}
-
-	/**
-	 * @return null|\Qordoba\Upload
-	 */
-	public function getUpload()
-	{
-		return $this->upload;
-	}
-
-	/**
-	 * @param $documentName
-	 * @param $jsonToTranslate
-	 * @param null $tag
-	 * @param string $type
-	 * @return mixed
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\DocumentException
-	 * @throws \Qordoba\Exception\ServerException
-	 * @throws \Qordoba\Exception\UploadException
-	 */
-	public function upload($documentName, $jsonToTranslate, $tag = null, $type = 'json')
-	{
-		$this->fetchMetadata();
-		$this->checkProjectType($type);
-		$this->upload->sendFile($documentName . '.' . $type, $jsonToTranslate);
-		return $this->upload->appendToProject($tag);
-	}
-
-	/**
-	 * @return mixed
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\ServerException
-	 */
-	public function fetchMetadata()
-	{
-		$this->metadata = $this->connection->fetchProject($this->getProjectId());
-
-		$newLanguages = [];
-		$languages = $this->metadata->project->target_languages;
-		foreach ($languages as $key => $lang) {
-			$newLanguages[$lang->id] = $lang;
-		}
-		$this->metadata->project->target_languages = $newLanguages;
-		return $this->getMetadata();
-	}
-
-	/**
-	 * @return mixed
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\ServerException
-	 */
-	public function getMetadata()
-	{
-		if (!$this->metadata) {
-			$this->fetchMetadata();
-		}
-		return $this->metadata;
-	}
-
-	/**
-	 * @param $projectType
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\DocumentException
-	 * @throws \Qordoba\Exception\ServerException
-	 */
-	private function checkProjectType($projectType)
-	{
-		$meta = $this->getMetadata();
-
-		$type_found = false;
-		foreach ($meta->project->content_type_codes as $key => $type) {
-			if ($type->extensions[0] == $projectType) {
-				$type_found = true;
-			}
-		}
-
-		if (!$type_found) {
-			throw new DocumentException('Sorry, this type of documents not supported by the project.');
-		}
-	}
-
-	/**
-	 * @param $documentName
-	 * @param $jsonToTranslate
-	 * @param null $tag
-	 * @param null $fileId
-	 * @param string $type
-	 * @return mixed
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\DocumentException
-	 * @throws \Qordoba\Exception\ServerException
-	 * @throws \Qordoba\Exception\UploadException
-	 */
-	public function update($documentName, $jsonToTranslate, $tag = null, $fileId = null, $type = 'json')
-	{
-		$this->fetchMetadata();
-
-		$this->checkProjectType($type);
-
-		$this->upload->sendFile($documentName . '.' . $type, $jsonToTranslate, true, $fileId, $tag);
-		return $this->upload->appendToProject($tag);
-	}
-
-	/**
-	 * @param $documentName
-	 * @param null $languageCode
-	 * @param null $tag
-	 * @param string $type
-	 * @return array
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\ProjectException
-	 * @throws \Qordoba\Exception\ServerException
-	 */
-	public function fetch($documentName, $languageCode = null, $tag = null, $type = 'json')
-	{
-		if (!$documentName || '' === $documentName) {
-			throw new ProjectException('Document name is not defined.');
-		}
-
-		$this->fetchMetadata();
-		$pages = $this->check($documentName, $languageCode, null, 'completed', $type);
-		$results = [];
-
-		foreach ($pages as $lang => $page) {
-			if ($page->meta->paging->total_results == 0) {
-				continue;
-			}
-
-			if ($tag !== null) {
-				foreach ($page->pages as $key => $doc) {
-					if ($doc->version_tag == $tag) {
-						$results[$lang] = $doc;
-						break;
-					}
-				}
-			} else {
-				$results[$lang] = array_shift($page->pages);
-			}
-		}
-
-		$languagesByCode = [];
-		foreach ($this->getMetadata()->project->target_languages as $key => $lang) {
-			$languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-			$result[$lang->code] = $this->connection->fetchProjectSearch(
-				$this->getProjectId(),
-				$lang->id,
-				$documentName . '.' . $type
-			);
-		}
-
-		foreach ($results as $lang => $version) {
-			if (isset($languagesByCode[$lang])) {
-				$results[$languagesByCode[$lang]['code']] = $this->connection->fetchTranslationFile($this->getProjectId(),
-					$languagesByCode[$lang]['id'], $version->page_id);
-			}
-		}
-		return $results;
-	}
-
-	/**
-	 * @param $documentName
-	 * @param null $languageCode
-	 * @param null $tag
-	 * @param string $status
-	 * @param string $type
-	 * @return array
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\ProjectException
-	 * @throws \Qordoba\Exception\ServerException
-	 */
-	public function check($documentName, $languageCode = null, $tag = null, $status = 'completed', $type = 'json')
-	{
-		if (!$documentName || '' === $documentName) {
-			throw new ProjectException('Document name is not defined.');
-		}
-
-		$this->fetchMetadata();
-
-		$result = [];
-		$languagesByCode = [];
-
-		foreach ($this->getMetadata()->project->target_languages as $key => $lang) {
-			$languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-			$result[$lang->code] = $this->connection->fetchProjectSearch($this->getProjectId(), $lang->id,
-				$documentName . '.' . $type, $status);
-		}
-
-		if (($languageCode !== null && $languagesByCode[$languageCode] !== null) && isset($result[$languageCode])) {
-			return [$languageCode => $result[$languageCode]];
-		} else {
-			if ($languageCode != null && !isset($result[$languageCode])) {
-				throw new ProjectException('Checked language ID not found in project');
-			}
-		}
-
-		return $result;
-	}
+    /**
+     * @var int|string
+     */
+    private $projectId;
+    /**
+     * @var int|string
+     */
+    private $organizationId;
+    /**
+     * @var \Qordoba\Connection
+     */
+    private $connection;
+    /**
+     * @var
+     */
+    private $metadata;
+    
+    /**
+     * @var null|\Qordoba\Upload
+     */
+    private $upload;
+    
+    /**
+     * Project constructor.
+     *
+     * @param $projectId
+     * @param $organizationId
+     * @param \Qordoba\Interfaces\ConnectionInterface $connection
+     */
+    public function __construct($projectId, $organizationId, ConnectionInterface $connection)
+    {
+        $this->setProjectId($projectId);
+        $this->setOrganizationId($organizationId);
+        $this->connection = $connection;
+        $this->upload = new Upload($this->connection, $this->getProjectId(), $this->getOrganizationId());
+    }
+    
+    /**
+     * @return int
+     */
+    public function getProjectId()
+    {
+        return $this->projectId;
+    }
+    
+    /**
+     * @param int|string $projectId
+     */
+    public function setProjectId($projectId)
+    {
+        $this->projectId = (int)$projectId;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getOrganizationId()
+    {
+        return $this->organizationId;
+    }
+    
+    /**
+     * @param int|string $organizationId
+     */
+    public function setOrganizationId($organizationId)
+    {
+        $this->organizationId = (int)$organizationId;
+    }
+    
+    /**
+     * @return null|\Qordoba\Upload
+     */
+    public function getUpload()
+    {
+        return $this->upload;
+    }
+    
+    /**
+     * @param string $documentName
+     * @param string $documentContent
+     * @param null|string $documentTag
+     * @param string $type
+     * @return mixed
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ServerException
+     * @throws \Qordoba\Exception\UploadException
+     */
+    public function upload($documentName, $documentContent, $documentTag = null, $type = DocumentInterface::TYPE_JSON)
+    {
+        $this->fetchMetadata();
+        $this->checkProjectType($type);
+        $this->upload->sendFile(sprintf('%s.%s', $documentName, $type), $documentContent);
+        return $this->upload->appendToProject($documentTag);
+    }
+    
+    /**
+     * @return \stdClass
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function fetchMetadata()
+    {
+        $this->metadata = $this->connection->fetchProject($this->getProjectId());
+        $metaLanguages = [];
+        $targetLanguages = $this->metadata->project->target_languages;
+        if (is_array($targetLanguages)) {
+            foreach ($targetLanguages as $key => $lang) {
+                $metaLanguages[$lang->id] = $lang;
+            }
+        }
+        $this->metadata->project->target_languages = $metaLanguages;
+        return $this->getMetadata();
+    }
+    
+    /**
+     * @return \stdClass
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function getMetadata()
+    {
+        if (!$this->metadata) {
+            $this->fetchMetadata();
+        }
+        return $this->metadata;
+    }
+    
+    /**
+     * @param string $projectType
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    private function checkProjectType($projectType)
+    {
+        $meta = $this->getMetadata();
+        $isTypeExist = false;
+        $contentTypeCodes = $meta->project->content_type_codes;
+        if (is_array($contentTypeCodes)) {
+            foreach ($contentTypeCodes as $key => $type) {
+                if (isset($type->extensions[0]) && ($type->extensions[0] === $projectType)) {
+                    $isTypeExist = true;
+                    break;
+                }
+            }
+        }
+        if (!$isTypeExist) {
+            throw new DocumentException('Sorry, this type of documents is not supported by the project.');
+        }
+    }
+    
+    /**
+     * @param string $documentName
+     * @param string $documentContent
+     * @param null|string $documentTag
+     * @param null $fileId
+     * @param string $type
+     * @return mixed
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\DocumentException
+     * @throws \Qordoba\Exception\ServerException
+     * @throws \Qordoba\Exception\UploadException
+     */
+    public function update(
+        $documentName,
+        $documentContent,
+        $documentTag = null,
+        $fileId = null,
+        $type = DocumentInterface::TYPE_JSON
+    ) {
+        $this->fetchMetadata();
+        $this->checkProjectType($type);
+        $this->upload->sendFile(sprintf('%s.%s', $documentName, $type), $documentContent, true, $fileId);
+        return $this->upload->appendToProject($documentTag);
+    }
+    
+    /**
+     * @param string $documentName
+     * @param string|null $documentLanguageCode
+     * @param string|null $documentTag
+     * @param string $documentType
+     * @return array
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ProjectException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function fetch($documentName, $documentLanguageCode = null, $documentTag = null, $documentType = 'json')
+    {
+        if (!$documentName || ('' === $documentName)) {
+            throw new ProjectException('Document name is not defined.');
+        }
+        
+        $this->fetchMetadata();
+        $pages = $this->check($documentName, $documentLanguageCode, null, 'completed', $documentType);
+        $results = [];
+        
+        foreach ($pages as $language => $page) {
+            if ((int)$page->meta->paging->total_results === 0) {
+                continue;
+            }
+            
+            if (($documentTag !== null) && isset($page->pages) && is_array($page->pages)) {
+                foreach ($page->pages as $key => $doc) {
+                    if (isset($doc->version_tag) && ($doc->version_tag === $documentTag)) {
+                        $results[$language] = $doc;
+                        break;
+                    }
+                }
+            } else {
+                $results[$language] = array_shift($page->pages);
+            }
+        }
+        
+        $languagesByCode = [];
+        $targetLanguages = $this->getMetadata()->project->target_languages;
+        if (is_array($targetLanguages)) {
+            foreach ($targetLanguages as $key => $language) {
+                $languagesByCode[$language->code] = ['id' => $language->id, 'code' => $language->code];
+                $result[$language->code] = $this->connection->fetchProjectSearch(
+                    $this->getProjectId(),
+                    $language->id,
+                    sprintf('%s.%s', $documentName, $documentType)
+                );
+            }
+        }
+    
+        foreach ($results as $language => $version) {
+            if (isset($languagesByCode[$language])) {
+                $results[$languagesByCode[$language]['code']] = $this->connection->fetchTranslationFile(
+                    $this->getProjectId(),
+                    $languagesByCode[$language]['id'],
+                    $version->page_id
+                );
+            }
+        }
+        return $results;
+    }
+    
+    /**
+     * @param $documentName
+     * @param null $documentLanguageCode
+     * @param null $documentTag
+     * @param string $status
+     * @param string $type
+     * @return array
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ProjectException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function check(
+        $documentName,
+        $documentLanguageCode = null,
+        $documentTag = null,
+        $status = 'completed',
+        $type = 'json'
+    ) {
+        if (!$documentName || '' === $documentName) {
+            throw new ProjectException('Document name is not defined.');
+        }
+        
+        $this->fetchMetadata();
+        
+        $result = [];
+        $languagesByCode = [];
+        
+        $targetLanguages = $this->getMetadata()->project->target_languages;
+        if (is_array($targetLanguages)) {
+            foreach ($targetLanguages as $key => $lang) {
+                $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
+                $result[$lang->code] = $this->connection->fetchProjectSearch(
+                    $this->getProjectId(),
+                    $lang->id,
+                    sprintf('%s.%s', $documentName, $type),
+                    $status
+                );
+            }
+        }
+        if ($documentLanguageCode !== null && !isset($result[$documentLanguageCode])) {
+            throw new ProjectException('Checked language ID not found in the project');
+        }
+    
+        if (($documentLanguageCode !== null && $languagesByCode[$documentLanguageCode] !== null)
+            && isset($result[$documentLanguageCode])) {
+            return [$documentLanguageCode => $result[$documentLanguageCode]];
+        }
+        return $result;
+    }
 }

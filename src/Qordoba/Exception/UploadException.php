@@ -15,8 +15,8 @@ namespace Qordoba\Exception;
  */
 class UploadException extends BaseException
 {
-	/**
-	 * @const int
-	 */
-	const WRONG_FILENAME = 1;
+    /**
+     * @const int
+     */
+    const WRONG_FILENAME = 1;
 }

@@ -8,54 +8,72 @@
 
 namespace Qordoba;
 
+use Qordoba\Interfaces\TranslateStringInterface;
+
 /**
  * Class TranslateString
  *
  * @package Qordoba
  */
-class TranslateString implements \JsonSerializable
+class TranslateString implements \JsonSerializable, TranslateStringInterface
 {
-
-	/**
-	 * @var
-	 */
-	private $key;
-	/**
-	 * @var
-	 */
-	private $value;
-	/**
-	 * @var
-	 */
-	private $section;
-
-	/**
-	 * TranslateString constructor.
-	 *
-	 * @param $key
-	 * @param $value
-	 * @param $section
-	 */
-	public function __construct($key, $value, $section)
-	{
-		$this->key = $key;
-		$this->value = $value;
-		$this->section = $section;
-	}
-
-	/**
-	 *
-	 */
-	public function unlink()
-	{
-		$this->section->removeTranslationString($this->key);
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function jsonSerialize()
-	{
-		return $this->value;
-	}
+    
+    /**
+     * @var string|int
+     */
+    private $key;
+    /**
+     * @var array
+     */
+    private $value;
+    /**
+     * @var string
+     */
+    private $section;
+    
+    /**
+     * TranslateString constructor.
+     *
+     * @param string|int $key
+     * @param array|string $value
+     * @param string $section
+     */
+    public function __construct($key, $value, $section)
+    {
+        $this->key = (string)$key;
+        $this->value = $value;
+        $this->section = $section;
+    }
+    
+    /**
+     * @return int|string
+     */
+    public function getKey()
+    {
+        return $this->key;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getSection()
+    {
+        return $this->section;
+    }
+    
+    /**
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return $this->value;
+    }
 }

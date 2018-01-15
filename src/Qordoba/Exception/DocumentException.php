@@ -15,16 +15,16 @@ namespace Qordoba\Exception;
  */
 class DocumentException extends BaseException
 {
-	/**
-	 * @const int
-	 */
-	const TRANSLATION_STRING_EXISTS = 1;
-	/**
-	 * @const int
-	 */
-	const TRANSLATION_STRING_NOT_EXISTS = 2;
-	/**
-	 * @const int
-	 */
-	const TRANSLATION_WRONG_TYPE = 3;
+    /**
+     * @const int
+     */
+    const TRANSLATION_STRING_EXISTS = 1;
+    /**
+     * @const int
+     */
+    const TRANSLATION_STRING_NOT_EXISTS = 2;
+    /**
+     * @const int
+     */
+    const TRANSLATION_WRONG_TYPE = 3;
 }

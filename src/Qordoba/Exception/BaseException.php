@@ -13,4 +13,7 @@ namespace Qordoba\Exception;
  *
  * @package Qordoba\Exception
  */
-class BaseException extends \Exception {}
+class BaseException extends \Exception
+{
+
+}

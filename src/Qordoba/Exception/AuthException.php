@@ -15,12 +15,12 @@ namespace Qordoba\Exception;
  */
 class AuthException extends BaseException
 {
-	/**
-	 * @const int
-	 */
-	const USERNAME_NOT_PROVIDED = 1;
-	/**
-	 * @const int
-	 */
-	const PASSWORD_NOT_PROVIDED = 2;
+    /**
+     * @const int
+     */
+    const USERNAME_NOT_PROVIDED = 1;
+    /**
+     * @const int
+     */
+    const PASSWORD_NOT_PROVIDED = 2;
 }
