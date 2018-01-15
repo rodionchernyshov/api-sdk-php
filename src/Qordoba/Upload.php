@@ -9,131 +9,122 @@
 namespace Qordoba;
 
 use Qordoba\Exception\UploadException;
-use Respect\Validation\Validator as v;
+use Qordoba\Interfaces\DocumentInterface;
+use Qordoba\Interfaces\UploadInterface;
+use Respect\Validation\Validator;
 
 /**
  * Class Upload
  *
  * @package Qordoba
  */
-class Upload
+class Upload implements UploadInterface
 {
-
-	/**
-	 * @var string
-	 */
-	private $fileName;
-	/**
-	 * @var string
-	 */
-	private $projectId;
-	/**
-	 * @var string
-	 */
-	private $uploadId;
-	/**
-	 * @var string
-	 */
-	private $organizationId;
-	/**
-	 * @var \Qordoba\Connection
-	 */
-	private $connection;
-
-	/**
-	 * Upload constructor.
-	 *
-	 * @param \Qordoba\Connection $connection
-	 * @param $projectId
-	 * @param $organizationId
-	 */
-	public function __construct(Connection $connection, $projectId, $organizationId)
-	{
-		$this->connection = $connection;
-		$this->projectId = $projectId;
-		$this->organizationId = $organizationId;
-	}
-
-	/**
-	 * @param $fileName
-	 * @param $tag
-	 * @deprecated
-	 */
-	public function searchTranslationFile($fileName, $tag)
-	{
-		$this->connection->fetchFilenameSearch($fileName, $tag);
-	}
-
-	/**
-	 * @param $fileName
-	 * @param $content
-	 * @param bool $update
-	 * @param int $fileId
-	 * @param null $tag
-	 * @return mixed
-	 * @throws \RuntimeException
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\ServerException
-	 * @throws \Qordoba\Exception\UploadException
-	 */
-	public function sendFile($fileName, $content, $update = false, $fileId = 0, $tag = null)
-	{
-		$this->setFileName($fileName);
-
-		$tmpFile = tempnam(sys_get_temp_dir(), $fileName);
-		file_put_contents($tmpFile, $content);
-
-		if ($update) {
-			$uploadId = $this->connection->requestFileUploadUpdate(
-				$this->getFileName(),
-				$tmpFile,
-				$this->projectId,
-				$fileId
-			);
-			$this->uploadId = $uploadId;
-			return $this->uploadId;
-		}
-
-		$uploadId = $this->connection->requestFileUpload($this->getFileName(), $tmpFile, $this->projectId,
-			$this->organizationId);
-		$this->uploadId = $uploadId;
-		return $this->uploadId;
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getFileName()
-	{
-		return $this->fileName;
-	}
-
-	/**
-	 * @param $fileName
-	 * @throws \Qordoba\Exception\UploadException
-	 */
-	public function setFileName($fileName)
-	{
-		if (!v::alnum('-.')->validate($fileName)) {
-			throw new UploadException('Upload file name not valid.', UploadException::WRONG_FILENAME);
-		}
-
-		$this->fileName = $fileName;
-	}
-
-	/**
-	 * @param string $tagName
-	 * @return mixed
-	 * @throws \RuntimeException
-	 * @throws \Exception
-	 * @throws \Qordoba\Exception\AuthException
-	 * @throws \Qordoba\Exception\ConnException
-	 * @throws \Qordoba\Exception\ServerException
-	 */
-	public function appendToProject($tagName = 'New')
-	{
-		return $this->connection->requestAppendToProject($this->fileName, $this->uploadId, $tagName, $this->projectId);
-	}
+    /**
+     * @var string
+     */
+    private $fileName;
+    /**
+     * @var int
+     */
+    private $projectId;
+    /**
+     * @var string
+     */
+    private $uploadId;
+    /**
+     * @var int
+     */
+    private $organizationId;
+    /**
+     * @var \Qordoba\Connection
+     */
+    private $connection;
+    
+    /**
+     * Upload constructor.
+     *
+     * @param \Qordoba\Connection $connection
+     * @param int|string $projectId
+     * @param int|string $organizationId
+     */
+    public function __construct(Connection $connection, $projectId, $organizationId)
+    {
+        $this->connection = $connection;
+        $this->projectId = (int)$projectId;
+        $this->organizationId = (int)$organizationId;
+    }
+    
+    /**
+     * @param $documentName
+     * @param $documentContent
+     * @param bool $isNeedUpdate
+     * @param null|int|string $documentId
+     * @return mixed
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ServerException
+     * @throws \Qordoba\Exception\UploadException
+     */
+    public function sendFile($documentName, $documentContent, $isNeedUpdate = false, $documentId = null)
+    {
+        $this->setFileName($documentName);
+        $tmpFile = tempnam(sys_get_temp_dir(), $documentName);
+        if ($tmpFile) {
+            file_put_contents($tmpFile, $documentContent);
+            if ($isNeedUpdate && $documentId) {
+                $this->uploadId = $this->connection->requestFileUploadUpdate(
+                    $this->getFileName(),
+                    $tmpFile,
+                    $this->projectId,
+                    $documentId
+                );
+            } else {
+                $this->uploadId = $this->connection->requestFileUpload(
+                    $this->getFileName(),
+                    $tmpFile,
+                    $this->projectId,
+                    $this->organizationId
+                );
+            }
+        }
+        return $this->uploadId;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getFileName()
+    {
+        return $this->fileName;
+    }
+    
+    /**
+     * @param string $fileName
+     * @throws \Qordoba\Exception\UploadException
+     */
+    public function setFileName($fileName)
+    {
+        if (!Validator::alnum('-.')->validate($fileName)) {
+            throw new UploadException('Upload file name not valid.', UploadException::WRONG_FILENAME);
+        }
+        
+        $this->fileName = trim($fileName);
+    }
+    
+    /**
+     * @param string $tagName
+     * @return mixed
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function appendToProject($tagName = DocumentInterface::DEFAULT_TAG_NAME)
+    {
+        return $this->connection->requestAppendToProject($this->fileName, $this->uploadId, $tagName, $this->projectId);
+    }
 }

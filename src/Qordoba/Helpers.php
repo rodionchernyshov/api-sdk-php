@@ -6,13 +6,13 @@
  * @license https://www.qordoba.com/terms
  */
 
-
 /**
  * @param string $string
  *
  * @return bool
  */
-function isJson($string) {
-  json_decode($string);
+function isJson($string)
+{
+    json_decode($string);
     return (json_last_error() === JSON_ERROR_NONE);
 }

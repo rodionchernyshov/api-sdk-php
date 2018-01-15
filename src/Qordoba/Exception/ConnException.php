@@ -15,12 +15,12 @@ namespace Qordoba\Exception;
  */
 class ConnException extends BaseException
 {
-	/**
-	 * @const int
-	 */
-	const URL_NOT_PROVIDED = 1;
-	/**
-	 * @const int
-	 */
-	const BAD_RESPONSE = 2;
+    /**
+     * @const int
+     */
+    const URL_NOT_PROVIDED = 1;
+    /**
+     * @const int
+     */
+    const BAD_RESPONSE = 2;
 }
