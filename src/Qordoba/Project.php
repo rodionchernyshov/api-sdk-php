@@ -37,12 +37,12 @@ class Project implements ProjectInterface
      * @var
      */
     private $metadata;
-    
+
     /**
      * @var null|\Qordoba\Upload
      */
     private $upload;
-    
+
     /**
      * Project constructor.
      *
@@ -57,7 +57,7 @@ class Project implements ProjectInterface
         $this->connection = $connection;
         $this->upload = new Upload($this->connection, $this->getProjectId(), $this->getOrganizationId());
     }
-    
+
     /**
      * @return int
      */
@@ -65,7 +65,7 @@ class Project implements ProjectInterface
     {
         return $this->projectId;
     }
-    
+
     /**
      * @param int|string $projectId
      */
@@ -73,7 +73,7 @@ class Project implements ProjectInterface
     {
         $this->projectId = (int)$projectId;
     }
-    
+
     /**
      * @return int
      */
@@ -81,7 +81,7 @@ class Project implements ProjectInterface
     {
         return $this->organizationId;
     }
-    
+
     /**
      * @param int|string $organizationId
      */
@@ -89,7 +89,7 @@ class Project implements ProjectInterface
     {
         $this->organizationId = (int)$organizationId;
     }
-    
+
     /**
      * @return null|\Qordoba\Upload
      */
@@ -97,7 +97,7 @@ class Project implements ProjectInterface
     {
         return $this->upload;
     }
-    
+
     /**
      * @param string $documentName
      * @param string $documentContent
@@ -119,7 +119,7 @@ class Project implements ProjectInterface
         $this->upload->sendFile(sprintf('%s.%s', $documentName, $type), $documentContent);
         return $this->upload->appendToProject($documentTag);
     }
-    
+
     /**
      * @return \stdClass
      * @throws \RuntimeException
@@ -141,7 +141,7 @@ class Project implements ProjectInterface
         $this->metadata->project->target_languages = $metaLanguages;
         return $this->getMetadata();
     }
-    
+
     /**
      * @return \stdClass
      * @throws \RuntimeException
@@ -157,7 +157,7 @@ class Project implements ProjectInterface
         }
         return $this->metadata;
     }
-    
+
     /**
      * @param string $projectType
      * @throws \RuntimeException
@@ -184,7 +184,7 @@ class Project implements ProjectInterface
             throw new DocumentException('Sorry, this type of documents is not supported by the project.');
         }
     }
-    
+
     /**
      * @param string $documentName
      * @param string $documentContent
@@ -206,13 +206,14 @@ class Project implements ProjectInterface
         $documentTag = null,
         $fileId = null,
         $type = DocumentInterface::TYPE_JSON
-    ) {
+    )
+    {
         $this->fetchMetadata();
         $this->checkProjectType($type);
         $this->upload->sendFile(sprintf('%s.%s', $documentName, $type), $documentContent, true, $fileId);
         return $this->upload->appendToProject($documentTag);
     }
-    
+
     /**
      * @param string $documentName
      * @param string|null $documentLanguageCode
@@ -231,16 +232,13 @@ class Project implements ProjectInterface
         if (!$documentName || ('' === $documentName)) {
             throw new ProjectException('Document name is not defined.');
         }
-        
-        $this->fetchMetadata();
-        $pages = $this->check($documentName, $documentLanguageCode, null, 'completed', $documentType);
+
+        $pages = $this->check($documentName, $documentLanguageCode, null, DocumentInterface::STATE_COMPLETED, $documentType);
         $results = [];
-        
         foreach ($pages as $language => $page) {
             if ((int)$page->meta->paging->total_results === 0) {
                 continue;
             }
-            
             if (($documentTag !== null) && isset($page->pages) && is_array($page->pages)) {
                 foreach ($page->pages as $key => $doc) {
                     if (isset($doc->version_tag) && ($doc->version_tag === $documentTag)) {
@@ -252,20 +250,32 @@ class Project implements ProjectInterface
                 $results[$language] = array_shift($page->pages);
             }
         }
-        
+
         $languagesByCode = [];
         $targetLanguages = $this->getMetadata()->project->target_languages;
+
         if (is_array($targetLanguages)) {
             foreach ($targetLanguages as $key => $language) {
-                $languagesByCode[$language->code] = ['id' => $language->id, 'code' => $language->code];
-                $result[$language->code] = $this->connection->fetchProjectSearch(
-                    $this->getProjectId(),
-                    $language->id,
-                    sprintf('%s.%s', $documentName, $documentType)
-                );
+                if ($documentLanguageCode) {
+                    if ($documentLanguageCode === $language->code) {
+                        $languagesByCode[$language->code] = ['id' => $language->id, 'code' => $language->code];
+                        $result[$language->code] = $this->connection->fetchProjectSearch(
+                            $this->getProjectId(),
+                            $language->id,
+                            sprintf('%s.%s', $documentName, $documentType)
+                        );
+                    }
+                } else {
+                    $languagesByCode[$language->code] = ['id' => $language->id, 'code' => $language->code];
+                    $result[$language->code] = $this->connection->fetchProjectSearch(
+                        $this->getProjectId(),
+                        $language->id,
+                        sprintf('%s.%s', $documentName, $documentType)
+                    );
+                }
             }
         }
-    
+
         foreach ($results as $language => $version) {
             if (isset($languagesByCode[$language])) {
                 $results[$languagesByCode[$language]['code']] = $this->connection->fetchTranslationFile(
@@ -277,7 +287,7 @@ class Project implements ProjectInterface
         }
         return $results;
     }
-    
+
     /**
      * @param $documentName
      * @param null $documentLanguageCode
@@ -296,34 +306,48 @@ class Project implements ProjectInterface
         $documentName,
         $documentLanguageCode = null,
         $documentTag = null,
-        $status = 'completed',
-        $type = 'json'
-    ) {
+        $status = DocumentInterface::STATE_COMPLETED,
+        $type = DocumentInterface::TYPE_JSON
+    )
+    {
         if (!$documentName || '' === $documentName) {
             throw new ProjectException('Document name is not defined.');
         }
-        
+
         $this->fetchMetadata();
-        
+
         $result = [];
         $languagesByCode = [];
-        
+
         $targetLanguages = $this->getMetadata()->project->target_languages;
         if (is_array($targetLanguages)) {
             foreach ($targetLanguages as $key => $lang) {
-                $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-                $result[$lang->code] = $this->connection->fetchProjectSearch(
-                    $this->getProjectId(),
-                    $lang->id,
-                    sprintf('%s.%s', $documentName, $type),
-                    $status
-                );
+                if ($documentLanguageCode) {
+                    if ($documentLanguageCode === $lang->code) {
+                        $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
+                        $result[$lang->code] = $this->connection->fetchProjectSearch(
+                            $this->getProjectId(),
+                            $lang->id,
+                            sprintf('%s.%s', $documentName, $type),
+                            $status
+                        );
+                        break;
+                    }
+                } else {
+                    $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
+                    $result[$lang->code] = $this->connection->fetchProjectSearch(
+                        $this->getProjectId(),
+                        $lang->id,
+                        sprintf('%s.%s', $documentName, $type),
+                        $status
+                    );
+                }
             }
         }
         if ($documentLanguageCode !== null && !isset($result[$documentLanguageCode])) {
             throw new ProjectException('Checked language ID not found in the project');
         }
-    
+
         if (($documentLanguageCode !== null && $languagesByCode[$documentLanguageCode] !== null)
             && isset($result[$documentLanguageCode])) {
             return [$documentLanguageCode => $result[$documentLanguageCode]];

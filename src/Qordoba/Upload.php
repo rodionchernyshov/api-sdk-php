@@ -107,7 +107,7 @@ class Upload implements UploadInterface
      */
     public function setFileName($fileName)
     {
-        if (!Validator::alnum('-.')->validate($fileName)) {
+        if (!Validator::alnum('-._')->validate($fileName)) {
             throw new UploadException('Upload file name not valid.', UploadException::WRONG_FILENAME);
         }
         

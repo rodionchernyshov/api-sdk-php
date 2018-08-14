@@ -14,6 +14,7 @@ use Qordoba\Exception\AuthException;
 use Qordoba\Exception\ConnException;
 use Qordoba\Exception\ServerException;
 use Qordoba\Interfaces\ConnectionInterface;
+use Qordoba\Interfaces\DocumentInterface;
 
 /**
  * Class Connection
@@ -278,8 +279,12 @@ class Connection implements ConnectionInterface
     private function processRequest($method, $apiUrl, $options)
     {
         try {
+            $timeStart = microtime(true);
             $httpClient = new HttpClient([RequestOptions::DELAY => 1]);
             $response = $httpClient->request($method, $apiUrl, $options);
+            $timeEnd = microtime(true);
+            $execution_time = ($timeEnd - $timeStart);
+            echo 'HTTP Request "' . $apiUrl .'" Execution Time: ' . round($execution_time, 2) . ' Second(s)' . PHP_EOL;
         } catch (\Exception $e) {
             $message = $e->getMessage();
             if (preg_match('#\"errMessage\":\"([^\"]{1,})\"#', $message, $match)) {
@@ -464,7 +469,7 @@ class Connection implements ConnectionInterface
         $projectId,
         $langId,
         $searchName = null,
-        $searchStatus = 'completed',
+        $searchStatus = DocumentInterface::STATE_COMPLETED,
         $offset = 0,
         $limit = 50
     ) {

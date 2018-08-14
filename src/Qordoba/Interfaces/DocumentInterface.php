@@ -27,7 +27,11 @@ interface DocumentInterface
      * @const string
      */
     const DEFAULT_TAG_NAME = 'New';
-    
+    /**
+     * @const string
+     */
+    const STATE_COMPLETED = 'completed';
+
     /**
      * @return \Qordoba\Connection
      */
