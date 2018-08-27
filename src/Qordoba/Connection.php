@@ -279,12 +279,8 @@ class Connection implements ConnectionInterface
     private function processRequest($method, $apiUrl, $options)
     {
         try {
-            $timeStart = microtime(true);
             $httpClient = new HttpClient([RequestOptions::DELAY => 1]);
             $response = $httpClient->request($method, $apiUrl, $options);
-            $timeEnd = microtime(true);
-            $execution_time = ($timeEnd - $timeStart);
-            echo 'HTTP Request "' . $apiUrl .'" Execution Time: ' . round($execution_time, 2) . ' Second(s)' . PHP_EOL;
         } catch (\Exception $e) {
             $message = $e->getMessage();
             if (preg_match('#\"errMessage\":\"([^\"]{1,})\"#', $message, $match)) {
