@@ -18,10 +18,10 @@ $documentToTranslate = [
 
 $translationDocument = new Qordoba\Document(
     API_URL,
-    'rodion.chernyshov@easternpeak.com',
-    'NeoMacuser571',
-    6340, // Workspace ID
-    3169 // Organization ID
+    '**********@mail.com',
+    '******',
+    0000, // Workspace ID
+    0000 // Organizaiotn ID
 );
 $translationDocument->setName('test-issue-7');
 $translationDocument->setTag('issue-1');
