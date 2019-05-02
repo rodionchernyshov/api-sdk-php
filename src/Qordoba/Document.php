@@ -383,6 +383,21 @@ class Document implements DocumentInterface
     {
         return $this->project->fetch($this->getName(), $languageCode, $this->getTag(), $this->getType());
     }
+
+    /**
+     * @param null|string $languageCode
+     * @return array
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ProjectException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function fetchSavedTranslation($languageCode = null)
+    {
+        return $this->project->fetchSaved($this->getName(), $languageCode, $this->getTag(), $this->getType());
+    }
     
     /**
      * @return array

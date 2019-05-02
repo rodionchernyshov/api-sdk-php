@@ -289,6 +289,82 @@ class Project implements ProjectInterface
     }
 
     /**
+     * @param string $documentName
+     * @param string|null $documentLanguageCode
+     * @param string|null $documentTag
+     * @param string $documentType
+     * @return array
+     * @throws \RuntimeException
+     * @throws \Exception
+     * @throws \Qordoba\Exception\AuthException
+     * @throws \Qordoba\Exception\ConnException
+     * @throws \Qordoba\Exception\ProjectException
+     * @throws \Qordoba\Exception\ServerException
+     */
+    public function fetchSaved($documentName, $documentLanguageCode = null, $documentTag = null, $documentType = 'json')
+    {
+        if (!$documentName || ('' === $documentName)) {
+            throw new ProjectException('Document name is not defined.');
+        }
+
+        $pages = $this->check($documentName, $documentLanguageCode, null, DocumentInterface::STATE_ENABLED, $documentType);
+        $results = [];
+        foreach ($pages as $language => $page) {
+            if ((int)$page->meta->paging->total_results === 0) {
+                continue;
+            }
+            if (($documentTag !== null) && isset($page->pages) && is_array($page->pages)) {
+                foreach ($page->pages as $key => $doc) {
+                    if (isset($doc->version_tag) && ($doc->version_tag === $documentTag)) {
+                        $results[$language] = $doc;
+                        break;
+                    }
+                }
+            } else {
+                $results[$language] = array_shift($page->pages);
+            }
+        }
+
+        $languagesByCode = [];
+        $targetLanguages = $this->getMetadata()->project->target_languages;
+
+        if (is_array($targetLanguages)) {
+            foreach ($targetLanguages as $key => $language) {
+                if ($documentLanguageCode) {
+                    if ($documentLanguageCode === $language->code) {
+                        $languagesByCode[$language->code] = ['id' => $language->id, 'code' => $language->code];
+                        $result[$language->code] = $this->connection->fetchProjectSearch(
+                            $this->getProjectId(),
+                            $language->id,
+                            sprintf('%s.%s', $documentName, $documentType),
+                            DocumentInterface::STATE_ENABLED
+                        );
+                    }
+                } else {
+                    $languagesByCode[$language->code] = ['id' => $language->id, 'code' => $language->code];
+                    $result[$language->code] = $this->connection->fetchProjectSearch(
+                        $this->getProjectId(),
+                        $language->id,
+                        sprintf('%s.%s', $documentName, $documentType),
+                        DocumentInterface::STATE_ENABLED
+                    );
+                }
+            }
+        }
+
+        foreach ($results as $language => $version) {
+            if (isset($languagesByCode[$language])) {
+                $results[$languagesByCode[$language]['code']] = $this->connection->fetchTranslationFile(
+                    $this->getProjectId(),
+                    $languagesByCode[$language]['id'],
+                    $version->page_id
+                );
+            }
+        }
+        return $results;
+    }
+
+    /**
      * @param $documentName
      * @param null $documentLanguageCode
      * @param null $documentTag

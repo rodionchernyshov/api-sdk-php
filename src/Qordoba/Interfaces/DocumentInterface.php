@@ -31,6 +31,10 @@ interface DocumentInterface
      * @const string
      */
     const STATE_COMPLETED = 'completed';
+    /**
+     * @const string
+     */
+    const STATE_ENABLED = 'enabled';
 
     /**
      * @return \Qordoba\Connection

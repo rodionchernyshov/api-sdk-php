@@ -544,7 +544,7 @@ class Connection implements ConnectionInterface
         $response = null;
         $authToken = $this->requestAuthToken();
         $requestUrl = sprintf(
-            '%s/projects/%s/languages/%s/pages/%s/segments/milestones/-100/export',
+            '%s/projects/%s/languages/%s/pages/%s/segments/milestones/-100/export?original_format=false&compress_columns=false',
             $this->getApiUrl(),
             $projectId,
             $langId,
