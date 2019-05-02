@@ -26,6 +26,10 @@ interface ConnectionInterface
     /**
      * @const string
      */
+    const REQUEST_METHOD_PUT = 'PUT';
+    /**
+     * @const string
+     */
     const REQUEST_METHOD_GET = 'GET';
     
     /**

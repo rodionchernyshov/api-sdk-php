@@ -401,6 +401,36 @@ class Connection implements ConnectionInterface
         $result = json_decode($response->getBody()->getContents());
         return array_shift($result->files_ids);
     }
+
+    /**
+     * @param string $fileName
+     * @param string|int $uploadId
+     * @param string $tagName
+     * @param string|int $projectId
+     * @return array
+     * @throws \RuntimeException
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
+     * @throws \Exception
+     */
+    public function requestUpdateProject($fileName, $uploadId, $fileId, $projectId)
+    {
+        $authToken = $this->requestAuthToken();
+        $requestUrl = sprintf('%s/projects/%s/files/%s/update/apply', $this->getApiUrl(), $projectId, $fileId);
+        $requestOptions = [
+            'headers' => [
+                'X-AUTH-TOKEN' => $authToken
+            ],
+            'json' => [
+                'keep_in_project' => false,
+                'new_file_id' => $uploadId
+            ]
+        ];
+        $response = $this->processRequest(ConnectionInterface::REQUEST_METHOD_PUT, $requestUrl, $requestOptions);
+        $result = json_decode($response->getBody()->getContents());
+        return array_shift($result->files_ids);
+    }
     
     /**
      * @return array

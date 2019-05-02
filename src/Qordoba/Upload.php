@@ -8,10 +8,15 @@
 
 namespace Qordoba;
 
+use Exception;
+use Qordoba\Exception\AuthException;
+use Qordoba\Exception\ConnException;
+use Qordoba\Exception\ServerException;
 use Qordoba\Exception\UploadException;
 use Qordoba\Interfaces\DocumentInterface;
 use Qordoba\Interfaces\UploadInterface;
 use Respect\Validation\Validator;
+use RuntimeException;
 
 /**
  * Class Upload
@@ -126,5 +131,18 @@ class Upload implements UploadInterface
     public function appendToProject($tagName = DocumentInterface::DEFAULT_TAG_NAME)
     {
         return $this->connection->requestAppendToProject($this->fileName, $this->uploadId, $tagName, $this->projectId);
+    }
+
+    /**
+     * @param $documentId
+     * @param $uploadFileId
+     * @return mixed
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
+     */
+    public function updateProject($documentId, $uploadFileId)
+    {
+        return $this->connection->requestUpdateProject($uploadFileId, $this->uploadId, $documentId, $this->projectId);
     }
 }

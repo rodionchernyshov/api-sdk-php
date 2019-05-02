@@ -210,8 +210,8 @@ class Project implements ProjectInterface
     {
         $this->fetchMetadata();
         $this->checkProjectType($type);
-        $this->upload->sendFile(sprintf('%s.%s', $documentName, $type), $documentContent, true, $fileId);
-        return $this->upload->appendToProject($documentTag);
+        $uploadId = $this->upload->sendFile(sprintf('%s.%s', $documentName, $type), $documentContent, true, $fileId);
+        return $this->upload->updateProject($fileId, $uploadId);
     }
 
     /**
