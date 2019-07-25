@@ -8,6 +8,7 @@
 
 namespace Qordoba;
 
+use JsonSerializable;
 use Qordoba\Exception\DocumentException;
 use Qordoba\Interfaces\TranslateSectionInterface;
 
@@ -16,17 +17,23 @@ use Qordoba\Interfaces\TranslateSectionInterface;
  *
  * @package Qordoba
  */
-class TranslateSection implements \JsonSerializable, TranslateSectionInterface
+class TranslateSection implements JsonSerializable, TranslateSectionInterface
 {
     /**
+     *
+     * JSON document element key
+     *
      * @var string
      */
     public $key;
     /**
+     *
+     * JSON document element values
+     *
      * @var array
      */
     public $strings;
-    
+
     /**
      * TranslateSection constructor.
      *
@@ -37,12 +44,15 @@ class TranslateSection implements \JsonSerializable, TranslateSectionInterface
         $this->key = $key;
         $this->strings = [];
     }
-    
+
     /**
+     *
+     * Creates new section in the JSON document
+     *
      * @param string $key
      * @param string|array $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addTranslationString($key, $value)
     {
@@ -55,12 +65,15 @@ class TranslateSection implements \JsonSerializable, TranslateSectionInterface
         $this->strings[$key] = new TranslateString($key, $value, $this);
         return true;
     }
-    
+
     /**
+     *
+     * Update an existing section in the JSON document
+     *
      * @param string $key
      * @param string|array $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function updateTranslationString($key, $value)
     {
@@ -70,12 +83,15 @@ class TranslateSection implements \JsonSerializable, TranslateSectionInterface
                 DocumentException::TRANSLATION_STRING_NOT_EXISTS
             );
         }
-        
+
         $this->strings[$key] = new TranslateString($key, $value, $this);
         return true;
     }
-    
+
     /**
+     *
+     * Remove an existing section in the JSON document
+     *
      * @param string|int $searchChunk
      * @return bool
      */
@@ -86,8 +102,11 @@ class TranslateSection implements \JsonSerializable, TranslateSectionInterface
         }
         return $this->removeTranslationStringByValue($searchChunk);
     }
-    
+
     /**
+     *
+     * Remove an existing section in the JSON document by section key
+     *
      * @param $searchChunk
      * @return bool
      */
@@ -100,8 +119,11 @@ class TranslateSection implements \JsonSerializable, TranslateSectionInterface
         }
         return $isRemoved;
     }
-    
+
     /**
+     *
+     * Remove an existing section in the JSON document by section value
+     *
      * @param string $searchChunk
      * @return bool
      */
@@ -117,7 +139,7 @@ class TranslateSection implements \JsonSerializable, TranslateSectionInterface
         }
         return $result;
     }
-    
+
     /**
      * @return array|mixed
      */

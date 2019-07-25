@@ -9,6 +9,7 @@
 namespace Qordoba;
 
 use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Qordoba\Exception\AuthException;
 use Qordoba\Exception\ConnException;
 use Qordoba\Exception\ServerException;
@@ -26,10 +27,16 @@ use RuntimeException;
 class Upload implements UploadInterface
 {
     /**
+     *
+     * Name of a file to upload on Qordoba Application
+     *
      * @var string
      */
     private $fileName;
     /**
+     *
+     * Workspace ID on Qordoba Application
+     *
      * @var int
      */
     private $projectId;
@@ -38,18 +45,25 @@ class Upload implements UploadInterface
      */
     private $uploadId;
     /**
+     *
+     * Organization ID on Qordoba Application
+     *
      * @var int
      */
     private $organizationId;
     /**
-     * @var \Qordoba\Connection
+     *
+     * Active connection to Qorodba Application API
+     *
+     * @var Connection
      */
     private $connection;
-    
+
     /**
+     *
      * Upload constructor.
      *
-     * @param \Qordoba\Connection $connection
+     * @param Connection $connection
      * @param int|string $projectId
      * @param int|string $organizationId
      */
@@ -59,19 +73,23 @@ class Upload implements UploadInterface
         $this->projectId = (int)$projectId;
         $this->organizationId = (int)$organizationId;
     }
-    
+
     /**
-     * @param $documentName
-     * @param $documentContent
+     *
+     * Sends file to Qorodba Application via REST API
+     *
+     * @param string $documentName
+     * @param string $documentContent
      * @param bool $isNeedUpdate
      * @param null|int|string $documentId
      * @return mixed
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
-     * @throws \Qordoba\Exception\UploadException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
+     * @throws UploadException
+     * @throws GuzzleException
      */
     public function sendFile($documentName, $documentContent, $isNeedUpdate = false, $documentId = null)
     {
@@ -97,36 +115,44 @@ class Upload implements UploadInterface
         }
         return $this->uploadId;
     }
-    
+
     /**
+     *
+     * Get file name that will be send to Qordoba Application via REST API
+     *
      * @return string
      */
     public function getFileName()
     {
         return $this->fileName;
     }
-    
+
     /**
+     *
+     * Set file name that will be send to Qordoba Application via REST API
+     *
      * @param string $fileName
-     * @throws \Qordoba\Exception\UploadException
+     * @throws UploadException
      */
     public function setFileName($fileName)
     {
         if (!Validator::alnum('-._')->validate($fileName)) {
             throw new UploadException('Upload file name not valid.', UploadException::WRONG_FILENAME);
         }
-        
         $this->fileName = trim($fileName);
     }
-    
+
     /**
+     *
+     * Add file to existing workspace on Qordoba via REST API
+     *
      * @param string $tagName
      * @return mixed
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function appendToProject($tagName = DocumentInterface::DEFAULT_TAG_NAME)
     {
@@ -134,6 +160,9 @@ class Upload implements UploadInterface
     }
 
     /**
+     *
+     * Update existing workspace on Qordoba via REST API
+     *
      * @param $documentId
      * @param $uploadFileId
      * @return mixed

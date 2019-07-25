@@ -8,6 +8,8 @@
 
 namespace Qordoba\Interfaces;
 
+use Qordoba\Exception\DocumentException;
+
 /**
  * Interface TranslateContentInterface
  *
@@ -18,25 +20,25 @@ interface TranslateContentInterface
     /**
      * @param string $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addContent($value);
-    
+
     /**
      * @param string $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function updateContent($value);
-    
+
     /**
      *
      */
     public function removeContent();
-    
+
     /**
      * @return bool|string
      */
     public function getContent();
-    
+
 }

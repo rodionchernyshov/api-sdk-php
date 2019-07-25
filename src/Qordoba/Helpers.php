@@ -7,8 +7,10 @@
  */
 
 /**
- * @param string $string
  *
+ * Validates JSON response from the API endpoint
+ *
+ * @param string $string
  * @return bool
  */
 function isJson($string)

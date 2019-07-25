@@ -8,6 +8,13 @@
 
 namespace Qordoba\Interfaces;
 
+use Exception;
+use Qordoba\Exception\AuthException;
+use Qordoba\Exception\ConnException;
+use Qordoba\Exception\ServerException;
+use Qordoba\Exception\UploadException;
+use RuntimeException;
+
 /**
  * Interface UploadInterface
  *
@@ -21,34 +28,34 @@ interface UploadInterface
      * @param bool $isNeedUpdate
      * @param null|int|string $documentId
      * @return mixed
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
-     * @throws \Qordoba\Exception\UploadException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
+     * @throws UploadException
      */
     public function sendFile($documentName, $documentContent, $isNeedUpdate = false, $documentId = null);
-    
+
     /**
      * @return string
      */
     public function getFileName();
-    
+
     /**
      * @param string $fileName
-     * @throws \Qordoba\Exception\UploadException
+     * @throws UploadException
      */
     public function setFileName($fileName);
-    
+
     /**
      * @param string $tagName
      * @return mixed
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function appendToProject($tagName = DocumentInterface::DEFAULT_TAG_NAME);
 }

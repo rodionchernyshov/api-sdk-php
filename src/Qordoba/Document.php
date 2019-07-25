@@ -8,8 +8,15 @@
 
 namespace Qordoba;
 
+use Exception;
+use Qordoba\Exception\AuthException;
+use Qordoba\Exception\ConnException;
 use Qordoba\Exception\DocumentException;
+use Qordoba\Exception\ProjectException;
+use Qordoba\Exception\ServerException;
+use Qordoba\Exception\UploadException;
 use Qordoba\Interfaces\DocumentInterface;
+use RuntimeException;
 
 /**
  * Class Document
@@ -18,17 +25,26 @@ use Qordoba\Interfaces\DocumentInterface;
  */
 class Document implements DocumentInterface
 {
-    
+
     /**
+     *
+     * Document sections (only JSON file type support)
+     *
      * @var array
      */
     public $sections = [];
     /**
-     * @var null|\Qordoba\Connection
+     *
+     * Qordoba Application active connection object
+     *
+     * @var null|Connection
      */
     private $connection;
     /**
-     * @var null|\Qordoba\Project
+     *
+     * Qordoba Application Workspace representation object
+     *
+     * @var null|Project
      */
     private $project;
     /**
@@ -40,26 +56,41 @@ class Document implements DocumentInterface
      */
     private $translationContent;
     /**
+     *
+     * Document type (HTML or JSON) will be sent/downloaded to/from Qordoba Application via REST API
+     *
      * @var string
      */
     private $type = DocumentInterface::TYPE_JSON;
     /**
+     *
+     * Document version tag will be sent/downloaded to/from Qordoba Application via REST API
+     *
      * @var string
      */
     private $tag;
     /**
+     *
+     * Document name will be sent/downloaded to/from Qordoba Application via REST API
+     *
      * @var string
      */
     private $name;
     /**
+     *
+     * Document identificator will be sent/downloaded to/from Qordoba Application via REST API
+     *
      * @var null
      */
     private $id;
     /**
+     *
+     * Available languages on Qordoba Application Workspace settings
+     *
      * @var null
      */
     private $languages;
-    
+
     /**
      * Document constructor.
      *
@@ -74,22 +105,32 @@ class Document implements DocumentInterface
         $this->tag = DocumentInterface::DEFAULT_TAG_NAME;
         $this->name = '';
         $this->translationStrings = [];
-        $this->connection = new Connection($apiUrl, $username, $password);
+        if ($apiUrl) {
+            $this->connection = new Connection($apiUrl, $username, $password);
+        } else {
+            $this->connection = new Connection(Connection::DEFAULT_API_URL, $username, $password);
+        }
         $this->project = new Project($projectId, $organizationId, $this->connection);
     }
-    
+
     /**
-     * @return \Qordoba\Connection
+     *
+     * Gets active connection to Qorodba Application
+     *
+     * @return Connection
      */
     public function getConnection()
     {
         return $this->connection;
     }
-    
+
     /**
-     * @param $key
+     *
+     * Add new item to a document (JSON file type only)
+     *
+     * @param string $key
      * @return mixed
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addSection($key)
     {
@@ -105,27 +146,36 @@ class Document implements DocumentInterface
         $this->sections[$key] = new TranslateSection($key);
         return $this->sections[$key];
     }
-    
+
     /**
+     *
+     * Gets active file type (supported file types JSON HTML)
+     *
      * @return string
      */
     public function getType()
     {
         return $this->type;
     }
-    
+
     /**
+     *
+     * Set active file type (supported file types JSON HTML)
+     *
      * @param $type
      */
     public function setType($type)
     {
         $this->type = $type;
     }
-    
+
     /**
+     *
+     * Get translation for an element in the document (support JSON file type only)
+     *
      * @param string $key
      * @return bool|mixed
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function getTranslationString($key)
     {
@@ -138,17 +188,20 @@ class Document implements DocumentInterface
                 DocumentException::TRANSLATION_WRONG_TYPE
             );
         }
-        
+
         if (!isset($this->translationStrings[$key])) {
             return false;
         }
-        
+
         return $this->translationStrings[$key];
     }
-    
+
     /**
+     *
+     * Get translation of the document (support JSON file type only)
+     *
      * @return array
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function getTranslationStrings()
     {
@@ -163,23 +216,29 @@ class Document implements DocumentInterface
         }
         return $this->translationStrings;
     }
-    
+
     /**
+     *
+     * Get Qorodba Application Workspaces metadata
+     *
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getMetadata()
     {
         $this->fetchMetadata();
         return ['languages' => $this->getProjectLanguages()];
     }
-    
+
     /**
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     *
+     * Get remote Qorodba Application Workspaces metadata
+     *
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function fetchMetadata()
     {
@@ -187,29 +246,35 @@ class Document implements DocumentInterface
             $this->languages = $this->connection->fetchLanguages();
         }
     }
-    
+
     /**
+     *
+     * Get remote Qorodba Application Workspaces Target languages
+     *
      * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function getProjectLanguages()
     {
         return $this->project->getMetadata()->project->target_languages;
     }
-    
+
     /**
-     * @return int|
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\DocumentException
-     * @throws \Qordoba\Exception\ServerException
-     * @throws \Qordoba\Exception\UploadException
+     *
+     * Send document to Qorodba Application via REST API
+     *
+     * @return int
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws DocumentException
+     * @throws ServerException
+     * @throws UploadException
      */
     public function createTranslation()
     {
@@ -220,18 +285,21 @@ class Document implements DocumentInterface
         } elseif ($type === DocumentInterface::TYPE_HTML) {
             $contents = $this->getTranslationContent();
         }
-        
+
         if ('' === trim($contents)) {
             throw new DocumentException('Contents for upload can\'t be empty');
         }
-        
+
         $this->id = $this->project->upload($this->getName(), $contents, $this->getTag(), $this->getType());
         return $this->id;
     }
-    
+
     /**
+     *
+     * Get completed document content from Qorodba Application via REST API
+     *
      * @return mixed
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function getTranslationContent()
     {
@@ -246,65 +314,64 @@ class Document implements DocumentInterface
         }
         return $this->translationContent->getContent();
     }
-    
+
     /**
+     *
+     * Get document name
+     *
      * @return string
      */
     public function getName()
     {
         return $this->name;
     }
-    
+
     /**
+     *
+     * Set document name will be sent/download to/from Qordoba Application
+     *
      * @param string $name
      */
     public function setName($name)
     {
         $this->name = trim($name);
     }
-    
+
     /**
+     *
+     * Get document version/tag
+     *
      * @return string
      */
     public function getTag()
     {
         return $this->tag;
     }
-    
+
     /**
+     *
+     * Set document version/tag will be sent/download to/from Qordoba Application
+     *
      * @param $tag
      */
     public function setTag($tag)
     {
         $this->tag = (string)$tag;
     }
-    
+
     /**
+     *
+     * Update document content on Qorodba Application via REST API
+     *
      * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-    
-    /**
-     * @param int|string $id
-     */
-    public function setId($id)
-    {
-        $this->id = (int)$id;
-    }
-    
-    /**
-     * @return int
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\DocumentException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
-     * @throws \Qordoba\Exception\UploadException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws DocumentException
+     * @throws ProjectException
+     * @throws ServerException
+     * @throws UploadException
      */
     public function updateTranslation()
     {
@@ -329,55 +396,86 @@ class Document implements DocumentInterface
             }
             $this->setId($locale->page_id);
         }
-       
+
         if ($type === DocumentInterface::TYPE_JSON) {
             $contents = json_encode($this->sections);
         } elseif ($type === DocumentInterface::TYPE_HTML) {
             $contents = $this->getTranslationContent();
         }
-        
+
         if ('' === trim($contents)) {
             throw new DocumentException('Contents for upload is empty');
         }
-        
+
         if ($this->project->update($this->getName(), $contents, $this->getTag(), $this->getId(), $this->getType())) {
             $id = $this->getId();
         }
         return $id;
     }
-    
+
     /**
-     * @return \Qordoba\Project
+     *
+     * Get document ID
+     *
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     *
+     * Set document ID
+     *
+     * @param int|string $id
+     */
+    public function setId($id)
+    {
+        $this->id = (int)$id;
+    }
+
+    /**
+     *
+     * Get Qordoba Application Workspace object with additional data
+     *
+     * @return Project
      */
     public function getProject()
     {
         return $this->project;
     }
-    
+
     /**
+     *
+     * Check if remote translation exist in the Qordoba Application Workspace
+     *
      * @param null|string $languageCode
      * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ProjectException
+     * @throws ServerException
      */
     public function checkTranslation($languageCode = null)
     {
         return $this->project->check($this->getName(), $languageCode, $this->getTag(), $this->getType());
     }
-    
+
     /**
+     *
+     * Download document if it's exists and competed in the Qordoba Application Workspace
+     *
      * @param null|string $languageCode
      * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ProjectException
+     * @throws ServerException
      */
     public function fetchTranslation($languageCode = null)
     {
@@ -385,26 +483,32 @@ class Document implements DocumentInterface
     }
 
     /**
+     *
+     * Download document if it's exists and saved in the Qordoba Application Workspace
+     *
      * @param null|string $languageCode
      * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ProjectException
+     * @throws ServerException
      */
     public function fetchSavedTranslation($languageCode = null)
     {
         return $this->project->fetchSaved($this->getName(), $languageCode, $this->getTag(), $this->getType());
     }
-    
+
     /**
+     *
+     * Download list of Qordoba supported Language Codes
+     *
      * @return array
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function getProjectLanguageCodes()
     {
@@ -412,7 +516,7 @@ class Document implements DocumentInterface
         $targetLanguages = $this->project->getMetadata()->project->target_languages;
         if (is_array($targetLanguages)) {
             foreach ($targetLanguages as $key => $lang) {
-                if (isset($lang->id, $lang->code)&& ('' !== $lang->id) && ('' !== $lang->code)) {
+                if (isset($lang->id, $lang->code) && ('' !== $lang->id) && ('' !== $lang->code)) {
                     $languages = ['id' => $lang->id, 'code' => $lang->code];
                     break;
                 }
@@ -420,11 +524,14 @@ class Document implements DocumentInterface
         }
         return $languages;
     }
-    
+
     /**
+     *
+     * Set HTML content for a document (support HTML only)
+     *
      * @param $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addTranslationContent($value)
     {
@@ -441,12 +548,15 @@ class Document implements DocumentInterface
         $this->translationContent->addContent($value);
         return true;
     }
-    
+
     /**
+     *
+     * Add new section to JSON document
+     *
      * @param $key
      * @param $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addTranslationString($key, $value)
     {
@@ -459,7 +569,7 @@ class Document implements DocumentInterface
                 DocumentException::TRANSLATION_WRONG_TYPE
             );
         }
-        
+
         if (isset($this->sections[$key])) {
             throw new DocumentException(
                 'String already exists. Please use method to edit it.',
@@ -469,11 +579,14 @@ class Document implements DocumentInterface
         $this->sections[$key] = new TranslateString($key, $value, $this);
         return true;
     }
-    
+
     /**
+     *
+     * Update document content (support only of HTML file type)
+     *
      * @param $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function updateTranslationContent($value)
     {
@@ -483,7 +596,7 @@ class Document implements DocumentInterface
                 DocumentException::TRANSLATION_WRONG_TYPE
             );
         }
-    
+
         if (!$this->translationContent) {
             throw new DocumentException(
                 'Cannot update not existing content.',
@@ -493,13 +606,16 @@ class Document implements DocumentInterface
         $this->translationContent->updateContent($value);
         return true;
     }
-    
-    
+
+
     /**
+     *
+     * Update JSON document section (support only of JSON file type)
+     *
      * @param $key
      * @param $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function updateTranslationString($key, $value)
     {
@@ -509,22 +625,25 @@ class Document implements DocumentInterface
                 DocumentException::TRANSLATION_WRONG_TYPE
             );
         }
-        
+
         if (!isset($this->sections[$key]) || $this->sections[$key] instanceof TranslateSection) {
             throw new DocumentException(
                 'String not exists. Please use method to edit it.',
                 DocumentException::TRANSLATION_STRING_NOT_EXISTS
             );
         }
-        
+
         $this->sections[$key] = new TranslateString($key, $value, $this);
         return true;
     }
-    
-    
+
+
     /**
+     *
+     * Delete document content (support only of HTML file type)
+     *
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function removeTranslationContent()
     {
@@ -534,7 +653,7 @@ class Document implements DocumentInterface
                 DocumentException::TRANSLATION_WRONG_TYPE
             );
         }
-        
+
         if (!$this->translationContent) {
             throw new DocumentException(
                 'Cannot update not existing content.',
@@ -544,11 +663,14 @@ class Document implements DocumentInterface
         $this->translationContent = null;
         return true;
     }
-    
+
     /**
+     *
+     * Search & remove section from JSON file
+     *
      * @param $searchChunk
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function removeTranslationString($searchChunk)
     {
@@ -558,17 +680,20 @@ class Document implements DocumentInterface
                 DocumentException::TRANSLATION_WRONG_TYPE
             );
         }
-        
+
         if (isset($this->sections[$searchChunk])) {
             return $this->removeTranslationStringByKey($searchChunk);
         }
         return $this->removeTranslationStringByValue($searchChunk);
     }
-    
+
     /**
+     *
+     * Search & remove section from JSON file by section title
+     *
      * @param $searchChunk
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     private function removeTranslationStringByKey($searchChunk)
     {
@@ -585,11 +710,14 @@ class Document implements DocumentInterface
         }
         return $isRemoved;
     }
-    
+
     /**
+     *
+     * Search & remove section from JSON file by section content
+     *
      * @param $searchChunk
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     private function removeTranslationStringByValue($searchChunk)
     {

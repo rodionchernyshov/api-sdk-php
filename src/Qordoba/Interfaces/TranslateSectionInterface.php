@@ -8,6 +8,8 @@
 
 namespace Qordoba\Interfaces;
 
+use Qordoba\Exception\DocumentException;
+
 /**
  * Interface TranslateSectionInterface
  *
@@ -19,18 +21,18 @@ interface TranslateSectionInterface
      * @param string $key
      * @param string|array $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addTranslationString($key, $value);
-    
+
     /**
      * @param string $key
      * @param string|array $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function updateTranslationString($key, $value);
-    
+
     /**
      * @param string|int $searchChunk
      * @return bool

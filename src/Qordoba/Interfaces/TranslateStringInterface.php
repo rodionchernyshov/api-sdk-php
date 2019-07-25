@@ -19,12 +19,12 @@ interface TranslateStringInterface
      * @return int|string
      */
     public function getKey();
-    
+
     /**
      * @return array
      */
     public function getValue();
-    
+
     /**
      * @return string
      */

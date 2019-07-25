@@ -1,6 +1,6 @@
 {
   "name": "qordoba/qordoba-php",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "autoload": {
     "psr-0": {
       "Qordoba": "src/",
