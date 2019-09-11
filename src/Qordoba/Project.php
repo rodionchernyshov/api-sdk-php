@@ -8,11 +8,18 @@
 
 namespace Qordoba;
 
+use Exception;
+use Qordoba\Exception\AuthException;
+use Qordoba\Exception\ConnException;
 use Qordoba\Exception\DocumentException;
 use Qordoba\Exception\ProjectException;
+use Qordoba\Exception\ServerException;
+use Qordoba\Exception\UploadException;
 use Qordoba\Interfaces\ConnectionInterface;
 use Qordoba\Interfaces\DocumentInterface;
 use Qordoba\Interfaces\ProjectInterface;
+use RuntimeException;
+use stdClass;
 
 /**
  * Class Project
@@ -22,24 +29,36 @@ use Qordoba\Interfaces\ProjectInterface;
 class Project implements ProjectInterface
 {
     /**
+     *
+     * Qordoba Application Workspace ID
+     *
      * @var int|string
      */
     private $projectId;
     /**
+     *
+     * Qordoba Application Organization ID
+     *
      * @var int|string
      */
     private $organizationId;
     /**
-     * @var \Qordoba\Connection
+     *
+     * Qordoba Application active connection object
+     *
+     * @var Connection
      */
     private $connection;
     /**
+     *
+     *  Qordoba Application Workspace additional information
+     *
      * @var
      */
     private $metadata;
 
     /**
-     * @var null|\Qordoba\Upload
+     * @var null|Upload
      */
     private $upload;
 
@@ -48,7 +67,7 @@ class Project implements ProjectInterface
      *
      * @param $projectId
      * @param $organizationId
-     * @param \Qordoba\Interfaces\ConnectionInterface $connection
+     * @param ConnectionInterface $connection
      */
     public function __construct($projectId, $organizationId, ConnectionInterface $connection)
     {
@@ -59,6 +78,9 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Get Workspace ID on Qordoba Application
+     *
      * @return int
      */
     public function getProjectId()
@@ -67,6 +89,9 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Set Workspace ID on Qordoba Application
+     *
      * @param int|string $projectId
      */
     public function setProjectId($projectId)
@@ -75,6 +100,9 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Get Organization ID on Qordoba Application
+     *
      * @return int
      */
     public function getOrganizationId()
@@ -83,6 +111,9 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Set Organization ID on Qordoba Application
+     *
      * @param int|string $organizationId
      */
     public function setOrganizationId($organizationId)
@@ -91,7 +122,7 @@ class Project implements ProjectInterface
     }
 
     /**
-     * @return null|\Qordoba\Upload
+     * @return null|Upload
      */
     public function getUpload()
     {
@@ -99,18 +130,21 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Uploads document (JSON or HTML) on Qordoba Application via REST API
+     *
      * @param string $documentName
      * @param string $documentContent
      * @param null|string $documentTag
      * @param string $type
      * @return mixed
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\DocumentException
-     * @throws \Qordoba\Exception\ServerException
-     * @throws \Qordoba\Exception\UploadException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws DocumentException
+     * @throws ServerException
+     * @throws UploadException
      */
     public function upload($documentName, $documentContent, $documentTag = null, $type = DocumentInterface::TYPE_JSON)
     {
@@ -121,12 +155,15 @@ class Project implements ProjectInterface
     }
 
     /**
-     * @return \stdClass
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     *
+     * Get remote Qordoba Application Workspace additional information
+     *
+     * @return stdClass
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function fetchMetadata()
     {
@@ -143,12 +180,15 @@ class Project implements ProjectInterface
     }
 
     /**
-     * @return \stdClass
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ServerException
+     *
+     * Get remote/local Qordoba Application Workspace additional information
+     *
+     * @return stdClass
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ServerException
      */
     public function getMetadata()
     {
@@ -159,13 +199,17 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Check if current workspace supports HTML or JSON documents types.
+     * Document (HTML or JSON) type(s) can be added to a Workspaces in the on Settings page
+     *
      * @param string $projectType
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\DocumentException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws DocumentException
+     * @throws ServerException
      */
     private function checkProjectType($projectType)
     {
@@ -186,19 +230,22 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Send request to Qordoba Application to updated an existing completed document via REST API
+     *
      * @param string $documentName
      * @param string $documentContent
      * @param null|string $documentTag
      * @param null $fileId
      * @param string $type
      * @return mixed
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\DocumentException
-     * @throws \Qordoba\Exception\ServerException
-     * @throws \Qordoba\Exception\UploadException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws DocumentException
+     * @throws ServerException
+     * @throws UploadException
      */
     public function update(
         $documentName,
@@ -215,19 +262,22 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Send request to Qordoba Application to get an existing document via REST API
+     *
      * @param string $documentName
      * @param string|null $documentLanguageCode
      * @param string|null $documentTag
      * @param string $documentType
      * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ProjectException
+     * @throws ServerException
      */
-    public function fetch($documentName, $documentLanguageCode = null, $documentTag = null, $documentType = 'json')
+    public function fetch($documentName, $documentLanguageCode = null, $documentTag = null, $documentType = DocumentInterface::TYPE_JSON)
     {
         if (!$documentName || ('' === $documentName)) {
             throw new ProjectException('Document name is not defined.');
@@ -289,17 +339,90 @@ class Project implements ProjectInterface
     }
 
     /**
+     *
+     * Send request to check state of a document on Qordoba Application via REST API
+     *
+     * @param $documentName
+     * @param null $documentLanguageCode
+     * @param null $documentTag
+     * @param string $status
+     * @param string $type
+     * @return array
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ProjectException
+     * @throws ServerException
+     */
+    public function check(
+        $documentName,
+        $documentLanguageCode = null,
+        $documentTag = null,
+        $status = DocumentInterface::STATE_COMPLETED,
+        $type = DocumentInterface::TYPE_JSON
+    )
+    {
+        if (!$documentName || '' === $documentName) {
+            throw new ProjectException('Document name is not defined.');
+        }
+
+        $this->fetchMetadata();
+
+        $result = [];
+        $languagesByCode = [];
+
+        $targetLanguages = $this->getMetadata()->project->target_languages;
+        if (is_array($targetLanguages)) {
+            foreach ($targetLanguages as $key => $lang) {
+                if ($documentLanguageCode) {
+                    if ($documentLanguageCode === $lang->code) {
+                        $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
+                        $result[$lang->code] = $this->connection->fetchProjectSearch(
+                            $this->getProjectId(),
+                            $lang->id,
+                            sprintf('%s.%s', $documentName, $type),
+                            $status
+                        );
+                        break;
+                    }
+                } else {
+                    $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
+                    $result[$lang->code] = $this->connection->fetchProjectSearch(
+                        $this->getProjectId(),
+                        $lang->id,
+                        sprintf('%s.%s', $documentName, $type),
+                        $status
+                    );
+                }
+            }
+        }
+        if ($documentLanguageCode !== null && !isset($result[$documentLanguageCode])) {
+            throw new ProjectException('Checked language ID not found in the project');
+        }
+
+        if (($documentLanguageCode !== null && $languagesByCode[$documentLanguageCode] !== null)
+            && isset($result[$documentLanguageCode])) {
+            return [$documentLanguageCode => $result[$documentLanguageCode]];
+        }
+        return $result;
+    }
+
+    /**
+     *
+     * Send request to get saved document on Qordoba Application via REST API
+     *
      * @param string $documentName
      * @param string|null $documentLanguageCode
      * @param string|null $documentTag
      * @param string $documentType
      * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
+     * @throws RuntimeException
+     * @throws Exception
+     * @throws AuthException
+     * @throws ConnException
+     * @throws ProjectException
+     * @throws ServerException
      */
     public function fetchSaved($documentName, $documentLanguageCode = null, $documentTag = null, $documentType = 'json')
     {
@@ -362,72 +485,5 @@ class Project implements ProjectInterface
             }
         }
         return $results;
-    }
-
-    /**
-     * @param $documentName
-     * @param null $documentLanguageCode
-     * @param null $documentTag
-     * @param string $status
-     * @param string $type
-     * @return array
-     * @throws \RuntimeException
-     * @throws \Exception
-     * @throws \Qordoba\Exception\AuthException
-     * @throws \Qordoba\Exception\ConnException
-     * @throws \Qordoba\Exception\ProjectException
-     * @throws \Qordoba\Exception\ServerException
-     */
-    public function check(
-        $documentName,
-        $documentLanguageCode = null,
-        $documentTag = null,
-        $status = DocumentInterface::STATE_COMPLETED,
-        $type = DocumentInterface::TYPE_JSON
-    )
-    {
-        if (!$documentName || '' === $documentName) {
-            throw new ProjectException('Document name is not defined.');
-        }
-
-        $this->fetchMetadata();
-
-        $result = [];
-        $languagesByCode = [];
-
-        $targetLanguages = $this->getMetadata()->project->target_languages;
-        if (is_array($targetLanguages)) {
-            foreach ($targetLanguages as $key => $lang) {
-                if ($documentLanguageCode) {
-                    if ($documentLanguageCode === $lang->code) {
-                        $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-                        $result[$lang->code] = $this->connection->fetchProjectSearch(
-                            $this->getProjectId(),
-                            $lang->id,
-                            sprintf('%s.%s', $documentName, $type),
-                            $status
-                        );
-                        break;
-                    }
-                } else {
-                    $languagesByCode[$lang->code] = ['id' => $lang->id, 'code' => $lang->code];
-                    $result[$lang->code] = $this->connection->fetchProjectSearch(
-                        $this->getProjectId(),
-                        $lang->id,
-                        sprintf('%s.%s', $documentName, $type),
-                        $status
-                    );
-                }
-            }
-        }
-        if ($documentLanguageCode !== null && !isset($result[$documentLanguageCode])) {
-            throw new ProjectException('Checked language ID not found in the project');
-        }
-
-        if (($documentLanguageCode !== null && $languagesByCode[$documentLanguageCode] !== null)
-            && isset($result[$documentLanguageCode])) {
-            return [$documentLanguageCode => $result[$documentLanguageCode]];
-        }
-        return $result;
     }
 }

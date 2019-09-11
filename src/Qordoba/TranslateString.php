@@ -8,6 +8,7 @@
 
 namespace Qordoba;
 
+use JsonSerializable;
 use Qordoba\Interfaces\TranslateStringInterface;
 
 /**
@@ -15,9 +16,9 @@ use Qordoba\Interfaces\TranslateStringInterface;
  *
  * @package Qordoba
  */
-class TranslateString implements \JsonSerializable, TranslateStringInterface
+class TranslateString implements JsonSerializable, TranslateStringInterface
 {
-    
+
     /**
      * @var string|int
      */
@@ -30,11 +31,11 @@ class TranslateString implements \JsonSerializable, TranslateStringInterface
      * @var string
      */
     private $section;
-    
+
     /**
      * TranslateString constructor.
      *
-     * @param string|int $key
+     * @param string $key
      * @param array|string $value
      * @param string $section
      */
@@ -44,7 +45,7 @@ class TranslateString implements \JsonSerializable, TranslateStringInterface
         $this->value = $value;
         $this->section = $section;
     }
-    
+
     /**
      * @return int|string
      */
@@ -52,7 +53,7 @@ class TranslateString implements \JsonSerializable, TranslateStringInterface
     {
         return $this->key;
     }
-    
+
     /**
      * @return array
      */
@@ -60,7 +61,7 @@ class TranslateString implements \JsonSerializable, TranslateStringInterface
     {
         return $this->value;
     }
-    
+
     /**
      * @return string
      */
@@ -68,7 +69,7 @@ class TranslateString implements \JsonSerializable, TranslateStringInterface
     {
         return $this->section;
     }
-    
+
     /**
      * @return array
      */

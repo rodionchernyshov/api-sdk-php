@@ -8,6 +8,7 @@
 
 namespace Qordoba;
 
+use JsonSerializable;
 use Qordoba\Exception\DocumentException;
 use Qordoba\Interfaces\TranslateContentInterface;
 
@@ -16,14 +17,17 @@ use Qordoba\Interfaces\TranslateContentInterface;
  *
  * @package Qordoba
  */
-class TranslateContent implements \JsonSerializable, TranslateContentInterface
+class TranslateContent implements JsonSerializable, TranslateContentInterface
 {
-    
+
     /**
+     *
+     * HTML document content
+     *
      * @var string
      */
     public $content;
-    
+
     /**
      * TranslateContent constructor.
      */
@@ -31,11 +35,14 @@ class TranslateContent implements \JsonSerializable, TranslateContentInterface
     {
         $this->content = '';
     }
-    
+
     /**
+     *
+     * Add HTML content to document that will be sent to Qordoba Application via REST API
+     *
      * @param string $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function addContent($value)
     {
@@ -45,15 +52,18 @@ class TranslateContent implements \JsonSerializable, TranslateContentInterface
                 DocumentException::TRANSLATION_STRING_EXISTS
             );
         }
-        
+
         $this->content = trim($value);
         return true;
     }
-    
+
     /**
+     *
+     * Update HTML content to document that will be sent to Qordoba Application via REST API
+     *
      * @param string $value
      * @return bool
-     * @throws \Qordoba\Exception\DocumentException
+     * @throws DocumentException
      */
     public function updateContent($value)
     {
@@ -66,24 +76,28 @@ class TranslateContent implements \JsonSerializable, TranslateContentInterface
         $this->content = $value;
         return true;
     }
-    
+
     /**
-     *
+     * Clear HTML content of a document
      */
     public function removeContent()
     {
         $this->content = '';
     }
-    
+
     /**
+     *
+     * Get HTML content to document that will be sent to Qordoba Application via REST API
+     *
      * @return bool|string
      */
     public function getContent()
     {
         return ('' === $this->content) ? false : $this->content;
     }
-    
+
     /**
+     *
      * @return mixed|string
      */
     public function jsonSerialize()
